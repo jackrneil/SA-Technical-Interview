@@ -1,0 +1,95 @@
+import { LeadInput, primaryGoals } from "@/lib/types";
+
+export interface ValidationResult {
+  ok: boolean;
+  data?: LeadInput;
+  errors: Record<string, string>;
+}
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const privateHostnamePatterns = [
+  /^localhost$/i,
+  /^127\./,
+  /^10\./,
+  /^192\.168\./,
+  /^172\.(1[6-9]|2\d|3[0-1])\./,
+  /^0\./,
+  /^169\.254\./,
+];
+
+function asString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+export function isSafePublicUrl(value: string): boolean {
+  if (!isHttpUrl(value)) return false;
+
+  const url = new URL(value);
+  const hostname = url.hostname.toLowerCase();
+
+  if (hostname.endsWith(".local") || privateHostnamePatterns.some((pattern) => pattern.test(hostname))) {
+    return false;
+  }
+
+  return true;
+}
+
+function isLinkedInProfileUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
+    return (url.protocol === "https:" || url.protocol === "http:") && host === "linkedin.com" && url.pathname.startsWith("/in/");
+  } catch {
+    return false;
+  }
+}
+
+export function validateLeadInput(input: unknown): ValidationResult {
+  const body = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : {};
+  const errors: Record<string, string> = {};
+
+  const lead = {
+    fullName: asString(body.fullName),
+    email: asString(body.email),
+    linkedinUrl: asString(body.linkedinUrl),
+    role: asString(body.role),
+    companyName: asString(body.companyName),
+    companyWebsite: asString(body.companyWebsite),
+    primaryGoal: asString(body.primaryGoal),
+  };
+
+  if (!lead.fullName) errors.fullName = "Full name is required.";
+  if (!emailPattern.test(lead.email)) errors.email = "A valid work email is required.";
+  if (!isLinkedInProfileUrl(lead.linkedinUrl)) errors.linkedinUrl = "Use a valid LinkedIn profile URL.";
+  if (!lead.role) errors.role = "Role is required.";
+  if (!lead.companyName) errors.companyName = "Company name is required.";
+  if (!primaryGoals.includes(lead.primaryGoal as LeadInput["primaryGoal"])) {
+    errors.primaryGoal = "Choose a valid primary goal.";
+  }
+  if (lead.companyWebsite && !isSafePublicUrl(lead.companyWebsite)) {
+    errors.companyWebsite = "Company website must be a public HTTP or HTTPS URL.";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, errors };
+  }
+
+  return {
+    ok: true,
+    errors: {},
+    data: {
+      ...lead,
+      companyWebsite: lead.companyWebsite || undefined,
+      primaryGoal: lead.primaryGoal as LeadInput["primaryGoal"],
+    },
+  };
+}
