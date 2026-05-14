@@ -360,7 +360,7 @@ body: the 6-paragraph HTML string. Only <p>, <strong>, <em>, and <a> tags allowe
 Body must start exactly with: <p>Hi <strong>${firstName}</strong>,</p>
 Total word count: 130–180 words.
 Do NOT include a sign-off line (Alex from CoursePilot) — that goes in the email footer automatically.
-After the CTA, add one final short line as a PS — visionary and slightly cinematic, hinting at a photo at the bottom of the email. It should feel like a bold, confident product moment. Examples of the right tone: "<p><em>P.S. Scroll down — we made you something. POV: you after your first CoursePilot launch.</em></p>" or "<p><em>P.S. We put together a vision of what's next for you — check the bottom.</em></p>" — vary it based on their purpose and company. One sentence, no emojis, no exclamation marks.
+After the CTA, add one final short PS line that is visionary and ties education or learning back to CoursePilot, with a hint that there is something to see at the bottom of the email. The tone should feel like a confident product moment — bold but not cheesy. Examples of the right tone: "<p><em>P.S. We imagined what your classroom looks like once CoursePilot is running it — scroll down.</em></p>" or "<p><em>P.S. Every great course launch starts somewhere. We pictured yours — take a look below.</em></p>" — vary it naturally based on their role and purpose. One sentence only, no emojis, no exclamation marks.
 
 Output example
 {"subject":"Faster follow-up for ${company || "your team"}","body":"<p>Hi <strong>${firstName}</strong>,</p><p>...</p>"}`;
