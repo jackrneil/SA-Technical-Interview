@@ -7,7 +7,7 @@ const DEFAULT_APIFY_ACTOR = "2SyF0bVxmgGr8IVCZ";
 // ─── Branded HTML email wrapper ────────────────────────────────────────────────
 // Applied after the AI/fallback step so the template is always consistent.
 
-function wrapInEmailTemplate(body: string, pixelUrl: string, productUrl: string): string {
+function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string): string {
   const logoUrl = "https://coursepilot-kappa.vercel.app/logo-icon.png";
   const currentYear = new Date().getFullYear();
 
@@ -24,23 +24,25 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, productUrl: string)
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
-          <!-- Logo bar above card -->
-          <tr>
-            <td align="center" style="padding-bottom:20px;">
-              <img src="${logoUrl}" alt="CoursePilot" width="40" height="40" style="border-radius:10px;display:inline-block;" />
-            </td>
-          </tr>
-
           <!-- Card -->
           <tr>
             <td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
-              <!-- Blue accent bar -->
+              <!-- Blue header with logo -->
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);padding:28px 40px 28px;">
-                    <p style="margin:0;color:#bfdbfe;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">Personal outreach</p>
-                    <p style="margin:6px 0 0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.4px;line-height:1.3;">A note from Alex at CoursePilot</p>
+                  <td style="background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);padding:28px 40px;">
+                    <table cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="vertical-align:middle;padding-right:14px;">
+                          <img src="${logoUrl}" alt="CoursePilot" width="44" height="44" style="border-radius:10px;display:block;" />
+                        </td>
+                        <td style="vertical-align:middle;">
+                          <p style="margin:0;color:#bfdbfe;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">Personal outreach</p>
+                          <p style="margin:4px 0 0;color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.3px;line-height:1.3;">A note from Alex at CoursePilot</p>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
@@ -74,7 +76,7 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, productUrl: string)
                         </td>
                         <td style="vertical-align:middle;">
                           <p style="margin:0;font-size:14px;font-weight:700;color:#0f172a;">Alex</p>
-                          <p style="margin:2px 0 0;font-size:13px;color:#64748b;">CoursePilot · <a href="${productUrl}" style="color:#2563eb;text-decoration:none;font-weight:500;">${productUrl.replace(/https?:\/\//, "")}</a></p>
+                          <p style="margin:2px 0 0;font-size:13px;color:#64748b;">CoursePilot</p>
                         </td>
                       </tr>
                     </table>
@@ -89,7 +91,7 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, productUrl: string)
           <tr>
             <td align="center" style="padding:24px 0 8px;">
               <p style="margin:0;color:#94a3b8;font-size:11px;line-height:1.6;">
-                © ${currentYear} CoursePilot. You received this because you submitted an inquiry.<br />
+                © ${currentYear} CoursePilot. You received this because you submitted an inquiry.
               </p>
             </td>
           </tr>
@@ -234,7 +236,7 @@ Structure (all wrapped in <p> tags — no other block elements)
 1. Greeting: <p>Hi <strong>${firstName}</strong>,</p>
 2. Personal hook: Reference their stated purpose or details directly. Make them feel seen.
 3. Problem: Name the specific manual friction their role creates in education outreach/follow-up.
-4. Solution: One precise sentence about what CoursePilot does. Then on its own line inside the <p>: a clickable link to ${productUrl} styled as <a href="${productUrl}" style="color:#2563eb;font-weight:600;">${productUrl.replace(/https?:\/\//, "")}</a>
+4. Solution: One precise sentence about what CoursePilot does for their specific context. No URL needed here.
 5. Outcome: A concrete operational result for their specific context. Use <em> for one phrase.
 6. CTA: End with "Worth 30 minutes?" then: <a href="${calendlyLink}" style="color:#2563eb;font-weight:600;">Book time here</a> and reference their company name.
 
