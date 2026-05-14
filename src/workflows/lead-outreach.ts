@@ -1,4 +1,5 @@
 import { generateText, experimental_generateImage as generateImage } from "ai";
+import { put } from "@vercel/blob";
 import nodemailer from "nodemailer";
 import type { ApifyLinkedInResult, LeadWebhookPayload, OutreachDraft, OutreachLogRecord, OutreachSendResult } from "@/workflows/types";
 
@@ -7,7 +8,7 @@ const DEFAULT_APIFY_ACTOR = "2SyF0bVxmgGr8IVCZ";
 // ─── Branded HTML email wrapper ────────────────────────────────────────────────
 // Applied after the AI/fallback step so the template is always consistent.
 
-function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string, imageBase64?: string | null): string {
+function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string, imageUrl?: string | null): string {
   const logoUrl = "https://coursepilot-kappa.vercel.app/logo-icon.png";
   const currentYear = new Date().getFullYear();
 
@@ -47,11 +48,11 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string
                 </tr>
               </table>
 
-              ${imageBase64 ? `<!-- Personalised image -->
+              ${imageUrl ? `<!-- Personalised image (hosted URL — renders in all clients) -->
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="padding:0;line-height:0;font-size:0;">
-                    <img src="data:image/png;base64,${imageBase64}" alt="Just for you" width="600" style="display:block;width:100%;max-width:600px;height:auto;" />
+                    <img src="${imageUrl}" alt="Just for you" width="600" style="display:block;width:100%;max-width:600px;height:auto;" />
                   </td>
                 </tr>
               </table>` : ""}
@@ -226,8 +227,15 @@ async function generatePersonalizedImage(lead: LeadWebhookPayload, enrichment: A
     const base64 = result.images?.[0]?.base64;
     if (!base64) throw new Error("No image returned from model");
 
-    console.log("[step 2/7 | personalized-image] Done — image size (base64 chars):", base64.length);
-    return base64;
+    // Upload to Vercel Blob so the email references a URL instead of a data URI.
+    // Gmail strips base64 data URIs and clips emails over ~102KB — a hosted URL
+    // fixes both problems.
+    const buffer = Buffer.from(base64, "base64");
+    const filename = `outreach-images/${Date.now()}-${firstName.toLowerCase().replace(/\s+/g, "-")}.png`;
+    const blob = await put(filename, buffer, { access: "public", contentType: "image/png" });
+
+    console.log("[step 2/7 | personalized-image] Uploaded to Blob —", blob.url);
+    return blob.url;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[step 2/7 | personalized-image] Failed, skipping image —", msg);
@@ -377,13 +385,13 @@ async function buildTrackingPixelUrl(leadEmail: string): Promise<string> {
 
 // ─── Step 5: Wrap in branded HTML template + inject pixel ─────────────────────
 
-async function injectTrackingPixel(draft: OutreachDraft, pixelUrl: string, personalizedImage: string | null): Promise<OutreachDraft> {
+async function injectTrackingPixel(draft: OutreachDraft, pixelUrl: string, imageUrl: string | null): Promise<OutreachDraft> {
   "use step";
 
   const productUrl = process.env.OUTREACH_PRODUCT_URL || "https://coursepilot.example/";
-  const html = wrapInEmailTemplate(draft.body, pixelUrl, productUrl, personalizedImage);
+  const html = wrapInEmailTemplate(draft.body, pixelUrl, productUrl, imageUrl);
 
-  console.log("[step 5/7 | inject-pixel] Wrapped in branded HTML template", personalizedImage ? "(with personalized image)" : "(no image)", "— injected tracking pixel");
+  console.log("[step 5/7 | inject-pixel] Wrapped in branded HTML template", imageUrl ? "(with personalized image)" : "(no image)", "— injected tracking pixel");
   return { subject: draft.subject, body: html };
 }
 
