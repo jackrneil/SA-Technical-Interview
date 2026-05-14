@@ -10,8 +10,10 @@
     "smoke": "tsx index.ts"
   },
   "dependencies": {
+    "@types/nodemailer": "^8.0.0",
     "ai": "latest",
     "next": "latest",
+    "nodemailer": "^8.0.7",
     "react": "latest",
     "react-dom": "latest",
     "resend": "latest",
