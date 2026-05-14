@@ -217,19 +217,47 @@ async function generatePersonalizedImage(lead: LeadWebhookPayload, enrichment: A
   ].filter(Boolean).join(" ");
 
   const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
-  console.log("[step 2/7 | personalized-image] Starting — name:", fullName, "| company:", company, "| location:", location || "(none)", "| blob ready:", hasBlobToken);
+  console.log("[step 2/7 | personalized-image] Starting — name:", fullName, "| company:", company, "| location:", location || "(none)", "| blob ready:", hasBlobToken, "| headshot:", headshotUrl ? "yes" : "no");
 
   if (!hasBlobToken) {
-    console.warn("[step 2/7 | personalized-image] SKIPPED — BLOB_READ_WRITE_TOKEN is not set. Add Vercel Blob storage to this project in the Vercel dashboard.");
+    console.warn("[step 2/7 | personalized-image] SKIPPED — BLOB_READ_WRITE_TOKEN is not set.");
     return null;
   }
 
   try {
-    console.log("[step 2/7 | personalized-image] Calling xai/grok-imagine-image...");
+    // Fetch the LinkedIn headshot and convert to base64 so we can pass it as a
+    // reference image to flux-kontext-pro, which preserves the real face.
+    let headshotBase64: string | null = null;
+    if (headshotUrl) {
+      try {
+        const resp = await fetch(headshotUrl);
+        if (resp.ok) {
+          const arrayBuf = await resp.arrayBuffer();
+          headshotBase64 = Buffer.from(arrayBuf).toString("base64");
+          console.log("[step 2/7 | personalized-image] Headshot fetched — size:", headshotBase64.length, "chars");
+        } else {
+          console.warn("[step 2/7 | personalized-image] Headshot fetch failed —", resp.status);
+        }
+      } catch (fetchErr) {
+        console.warn("[step 2/7 | personalized-image] Headshot fetch error —", fetchErr instanceof Error ? fetchErr.message : String(fetchErr));
+      }
+    }
+
+    // Use flux-kontext-pro (img2img) when we have a real headshot — it preserves
+    // the person's actual face, clothing style, and age. Fall back to grok
+    // text-to-image when no headshot is available.
+    const model = headshotBase64 ? "bfl/flux-kontext-pro" : "xai/grok-imagine-image";
+    console.log("[step 2/7 | personalized-image] Calling", model, "...");
+
     const result = await generateImage({
-      model: "xai/grok-imagine-image",
+      model,
       prompt,
       aspectRatio: "1:1",
+      ...(headshotBase64 ? {
+        providerOptions: {
+          bfl: { input_image: headshotBase64 },
+        },
+      } : {}),
     });
 
     const base64 = result.images?.[0]?.base64;
@@ -240,7 +268,7 @@ async function generatePersonalizedImage(lead: LeadWebhookPayload, enrichment: A
     const filename = `outreach-images/${Date.now()}-${firstName.toLowerCase().replace(/\s+/g, "-")}.png`;
     const blob = await put(filename, buffer, { access: "public", contentType: "image/png" });
 
-    console.log("[step 2/7 | personalized-image] SUCCESS — image URL:", blob.url);
+    console.log("[step 2/7 | personalized-image] SUCCESS — model:", model, "| url:", blob.url);
     return blob.url;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
