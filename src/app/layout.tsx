@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 
@@ -24,8 +25,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <header className="site-header">
           <div className="site-header-inner">
             <Link href="/" className="brand-logo" aria-label="CoursePilot home">
-              <span className="brand-mark">F</span>
-              <span>CoursePilot</span>
+              <Image
+                src="/logo-full.png"
+                alt="CoursePilot"
+                width={1159}
+                height={319}
+                priority
+                className="brand-logo-image"
+              />
             </Link>
             <nav className="primary-nav" aria-label="Primary">
               <button type="button">

@@ -76,20 +76,10 @@ textarea {
   color: var(--text);
 }
 
-.brand-mark {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "Georgia", serif;
-  font-style: italic;
-  font-size: 1.1rem;
-  letter-spacing: -0.02em;
+.brand-logo-image {
+  height: 32px;
+  width: auto;
+  display: block;
 }
 
 .primary-nav {
@@ -322,11 +312,11 @@ p {
   font-size: 0.8rem;
 }
 
-.dashboard-topbar-left .brand-mark {
+.dashboard-brand-icon {
   width: 20px;
   height: 20px;
-  font-size: 0.78rem;
   border-radius: 5px;
+  object-fit: contain;
 }
 
 .dashboard-search {

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 function Sparkle() {
@@ -130,7 +131,14 @@ function DashboardMock() {
     <div className="dashboard-card" aria-hidden>
       <div className="dashboard-topbar">
         <div className="dashboard-topbar-left">
-          <span className="brand-mark">F</span>
+          <Image
+            src="/logo-icon.png"
+            alt=""
+            width={903}
+            height={903}
+            className="dashboard-brand-icon"
+            aria-hidden
+          />
           <span>CoursePilot</span>
         </div>
         <div className="dashboard-search">
