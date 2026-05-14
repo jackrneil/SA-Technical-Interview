@@ -163,12 +163,14 @@ Output format example
   const model = process.env.AI_MODEL || "openai/gpt-5.5";
 
   try {
-    const { text } = await generateText({
+    const { text, usage, finishReason } = await generateText({
       model,
       system: systemPrompt,
       prompt: userPrompt,
       temperature: 0.2,
     });
+
+    console.log("[outreach-ai]", JSON.stringify({ model, finishReason, usage }));
 
     const cleaned = text.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "").trim();
     const match = cleaned.match(/\{[\s\S]*\}/);

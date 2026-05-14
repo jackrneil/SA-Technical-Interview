@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src next.config.ts"
+    "lint": "eslint src next.config.ts",
+    "smoke": "tsx index.ts"
   },
   "dependencies": {
     "ai": "latest",
@@ -20,8 +21,10 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "dotenv": "^17.4.2",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "tsx": "^4.21.0",
     "typescript": "latest"
   }
 }

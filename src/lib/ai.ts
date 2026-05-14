@@ -68,13 +68,15 @@ ${JSON.stringify(short ? { submittedLead, coursePilot: context.coursePilot } : c
 async function callModel(prompt: string): Promise<AIResult | null> {
   const model = process.env.AI_MODEL || "openai/gpt-5.5";
 
-  const { text } = await generateText({
+  const { text, usage, finishReason } = await generateText({
     model,
     system:
       "You are an enterprise software Solutions Architect assistant for CoursePilot. Turn lead context into a personalized but professional outreach email and internal account brief. Do not invent facts. If information is missing, state the uncertainty. Keep the tone clear, useful, and business focused.",
     prompt,
     temperature: 0.2,
   });
+
+  console.log("[intake-ai]", JSON.stringify({ model, finishReason, usage }));
 
   return safeJsonParse(text);
 }

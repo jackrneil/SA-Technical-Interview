@@ -31,26 +31,43 @@ Open `http://localhost:3000`.
 
 The app works without API keys by using fallback profile data, fallback company context, a safe template email, and mock email send mode.
 
-To test AI Gateway locally, pull Vercel environment variables and run the smoke test:
+## AI Gateway smoke test
+
+The repo ships a one-file streaming smoke test (`index.ts`) that mirrors the official Vercel AI Gateway [Text Generation Quickstart](https://vercel.com/docs/ai-gateway/getting-started/text-generation). Use it to verify your credentials and the `openai/gpt-5.5` route end-to-end.
+
+Pick one of the two authentication modes:
 
 ```bash
+# Option 1: API key (recommended for laptops)
+echo "AI_GATEWAY_API_KEY=<your_key>" >> .env.local
+
+# Option 2: OIDC token (recommended when this folder is `vc link`ed)
 vc env pull .env.local
-node --env-file=.env.local index.mjs
 ```
+
+Then run:
+
+```bash
+npm run smoke
+```
+
+You'll see the model stream a response, followed by `Token usage: { ... }` and `Finish reason: stop`. Both the `/api/intake` synchronous brief and the durable workflow log the same `usage` and `finishReason` to the server console for production observability.
 
 ## Environment Variables
 
-Copy `.env.example` to `.env.local` and configure the values you want to test.
+Copy `.env.example` to `.env.local` (for `AI_GATEWAY_API_KEY` / `VERCEL_OIDC_TOKEN`) or `.env` (for everything else) and configure the values you want to test.
 
 ```bash
 AI_MODEL=openai/gpt-5.5
+AI_GATEWAY_API_KEY=             # or VERCEL_OIDC_TOKEN via `vc env pull`
 APIFY_TOKEN=
 APIFY_LINKEDIN_ACTOR_ID=
 RESEND_API_KEY=
 FROM_EMAIL=CoursePilot <hello@yourverifieddomain.com>
+OUTREACH_CALENDLY_URL=https://calendly.com/course-pilot/30min
 ```
 
-`AI_MODEL` controls the AI Gateway model and defaults to `openai/gpt-5.5`. For local development, `vc env pull .env.local` pulls `VERCEL_OIDC_TOKEN`, so no AI Gateway API key needs to be stored in the project. `APIFY_TOKEN` and `APIFY_LINKEDIN_ACTOR_ID` enable LinkedIn enrichment. `RESEND_API_KEY` and `FROM_EMAIL` enable real email delivery.
+`AI_MODEL` controls the AI Gateway model and defaults to `openai/gpt-5.5`. For local dev you can pick either `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN`; on Vercel-hosted deployments the OIDC token is supplied automatically. `APIFY_TOKEN` and `APIFY_LINKEDIN_ACTOR_ID` enable real LinkedIn enrichment. `RESEND_API_KEY` and `FROM_EMAIL` enable real email delivery (otherwise the workflow falls back to mock send mode).
 
 ## Workflow
 
