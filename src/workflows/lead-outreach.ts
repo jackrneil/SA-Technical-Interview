@@ -82,7 +82,7 @@ function buildFallbackDraft(lead: LeadWebhookPayload, enrichment: ApifyLinkedInR
 async function generateOutreachEmail(lead: LeadWebhookPayload, enrichment: ApifyLinkedInResult): Promise<OutreachDraft> {
   "use step";
 
-  const calendlyLink = process.env.OUTREACH_CALENDLY_URL || "https://calendly.com/coursepilot/30min";
+  const calendlyLink = process.env.OUTREACH_CALENDLY_URL || "https://calendly.com/course-pilot/30min";
   const productUrl = process.env.OUTREACH_PRODUCT_URL || "https://coursepilot.example/";
 
   const firstName = (lead.firstName || enrichment.firstName || "there").trim();
