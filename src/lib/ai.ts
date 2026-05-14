@@ -55,11 +55,7 @@ ${JSON.stringify(short ? { submittedLead: lead, coursePilot: context.coursePilot
 }
 
 async function callModel(prompt: string): Promise<AIResult | null> {
-  const model = process.env.AI_MODEL;
-
-  if (!process.env.AI_GATEWAY_API_KEY || !model) {
-    return null;
-  }
+  const model = process.env.AI_MODEL || "openai/gpt-5.5";
 
   const { text } = await generateText({
     model,

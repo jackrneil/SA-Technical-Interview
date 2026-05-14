@@ -30,20 +30,26 @@ Open `http://localhost:3000`.
 
 The app works without API keys by using fallback profile data, fallback company context, a safe template email, and mock email send mode.
 
+To test AI Gateway locally, pull Vercel environment variables and run the smoke test:
+
+```bash
+vc env pull .env.local
+node --env-file=.env.local index.mjs
+```
+
 ## Environment Variables
 
 Copy `.env.example` to `.env.local` and configure the values you want to test.
 
 ```bash
-AI_GATEWAY_API_KEY=
-AI_MODEL=
+AI_MODEL=openai/gpt-5.5
 APIFY_TOKEN=
 APIFY_LINKEDIN_ACTOR_ID=
 RESEND_API_KEY=
 FROM_EMAIL=CoursePilot <hello@yourverifieddomain.com>
 ```
 
-`AI_GATEWAY_API_KEY` and `AI_MODEL` enable real AI generation. `APIFY_TOKEN` and `APIFY_LINKEDIN_ACTOR_ID` enable LinkedIn enrichment. `RESEND_API_KEY` and `FROM_EMAIL` enable real email delivery.
+`AI_MODEL` controls the AI Gateway model and defaults to `openai/gpt-5.5`. For local development, `vc env pull .env.local` pulls `VERCEL_OIDC_TOKEN`, so no AI Gateway API key needs to be stored in the project. `APIFY_TOKEN` and `APIFY_LINKEDIN_ACTOR_ID` enable LinkedIn enrichment. `RESEND_API_KEY` and `FROM_EMAIL` enable real email delivery.
 
 ## Workflow
 
