@@ -43,3 +43,5 @@ next-env.d.ts
 
 # local screenshots from automated testing
 /.screenshots/
+.agents/
+skills-lock.json

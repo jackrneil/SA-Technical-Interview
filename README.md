@@ -14,6 +14,7 @@ This app automates the first pass while keeping a human review step before sendi
 
 - Next.js App Router with TypeScript
 - Vercel server route handlers
+- Vercel Workflow SDK (`workflow`) for the durable outreach pipeline
 - Vercel AI SDK through the `ai` package
 - Apify LinkedIn profile enrichment
 - Resend email sending with mock fallback mode
@@ -114,6 +115,47 @@ The `/evals` page displays the test cases and rubric categories.
 - The app does not persist scraped LinkedIn data in a database.
 - Company website fetching validates URLs and blocks localhost or private IP ranges.
 - Production rate limiting and audit logging hooks are noted in server routes.
+
+## Outreach Workflow
+
+The lead outreach workflow mirrors the n8n pipeline (Webhook -> Apify -> AI Agent -> Pixel -> Inject Pixel -> Send -> Log) using the Vercel Workflow SDK.
+
+Trigger the workflow with the same flat-key JSON shape the n8n webhook used:
+
+```bash
+curl -X POST http://localhost:3000/api/workflow/outreach \
+  -H "content-type: application/json" \
+  -d '{
+    "LinkedIn URL": "https://www.linkedin.com/in/example",
+    "First Name": "Alexandra",
+    "Last Name": "Scaccia",
+    "Title": "Director of Online Learning",
+    "Company Name": "UW Health",
+    "Business Email": "alex@example.com",
+    "Industry": "Education",
+    "Captured URL": "https://www.coursepilot.example/"
+  }'
+```
+
+Node-by-node mapping:
+
+| n8n node | Workflow step | File |
+|---|---|---|
+| Webhook8 | `POST /api/workflow/outreach` | `src/app/api/workflow/outreach/route.ts` |
+| Run an Actor and get dataset7 | `runApifyLinkedInActor` | `src/workflows/lead-outreach.ts` |
+| AI Agent Ashley Hotfix2 | `generateOutreachEmail` (Vercel AI SDK) | `src/workflows/lead-outreach.ts` |
+| Generate Pixel URL2 | `buildTrackingPixelUrl` | `src/workflows/lead-outreach.ts` |
+| Code in JavaScript6 | `injectTrackingPixel` | `src/workflows/lead-outreach.ts` |
+| Gmail - Send Personalized Email7 | `sendOutreachEmail` (Resend with mock fallback) | `src/workflows/lead-outreach.ts` |
+| Sheets - Log Email Sent4 | `logOutreachRecord` (structured log line) | `src/workflows/lead-outreach.ts` |
+
+The tracking pixel served by `/api/track-open` returns a 1x1 GIF and logs an `outreach-open` event. Inspect runs and steps locally with:
+
+```bash
+npx workflow web
+# or
+npx workflow inspect runs
+```
 
 ## Deploy to Vercel
 
