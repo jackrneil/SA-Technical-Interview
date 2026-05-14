@@ -1,4 +1,4 @@
-import { generateText } from "ai";
+import { generateText, experimental_generateImage as generateImage } from "ai";
 import nodemailer from "nodemailer";
 import type { ApifyLinkedInResult, LeadWebhookPayload, OutreachDraft, OutreachLogRecord, OutreachSendResult } from "@/workflows/types";
 
@@ -7,7 +7,7 @@ const DEFAULT_APIFY_ACTOR = "2SyF0bVxmgGr8IVCZ";
 // ─── Branded HTML email wrapper ────────────────────────────────────────────────
 // Applied after the AI/fallback step so the template is always consistent.
 
-function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string): string {
+function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string, imageBase64?: string | null): string {
   const logoUrl = "https://coursepilot-kappa.vercel.app/logo-icon.png";
   const currentYear = new Date().getFullYear();
 
@@ -46,6 +46,15 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string
                   </td>
                 </tr>
               </table>
+
+              ${imageBase64 ? `<!-- Personalised image -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:0;line-height:0;font-size:0;">
+                    <img src="data:image/png;base64,${imageBase64}" alt="Just for you" width="600" style="display:block;width:100%;max-width:600px;height:auto;" />
+                  </td>
+                </tr>
+              </table>` : ""}
 
               <!-- Body -->
               <table width="100%" cellpadding="0" cellspacing="0">
@@ -110,13 +119,13 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string
 async function runApifyLinkedInActor(linkedinUrl: string, lead: LeadWebhookPayload): Promise<ApifyLinkedInResult> {
   "use step";
 
-  console.log("[step 1/6 | linkedin-enrichment] Starting — url:", linkedinUrl);
+  console.log("[step 1/7 | linkedin-enrichment] Starting — url:", linkedinUrl);
 
   const token = process.env.APIFY_TOKEN;
   const actorId = process.env.APIFY_LINKEDIN_ACTOR_ID || DEFAULT_APIFY_ACTOR;
 
   if (!token || !linkedinUrl) {
-    console.log("[step 1/6 | linkedin-enrichment] No Apify token — using form data as fallback");
+    console.log("[step 1/7 | linkedin-enrichment] No Apify token — using form data as fallback");
     return {
       firstName: lead.firstName,
       lastName: lead.lastName,
@@ -146,11 +155,87 @@ async function runApifyLinkedInActor(linkedinUrl: string, lead: LeadWebhookPaylo
     : {}) as Partial<ApifyLinkedInResult>;
 
   const result: ApifyLinkedInResult = { ...profile, source: "apify" };
-  console.log("[step 1/6 | linkedin-enrichment] Done — source: apify, name:", result.firstName, result.lastName, "| company:", result.companyName);
+  console.log("[step 1/7 | linkedin-enrichment] Done — source: apify, name:", result.firstName, result.lastName, "| company:", result.companyName);
   return result;
 }
 
-// ─── Step 2: AI outreach email draft ──────────────────────────────────────────
+// ─── Step 2: Generate personalised kindergarten image ─────────────────────────
+
+function getCityLandmark(location: string): string {
+  const l = location.toLowerCase();
+  if (l.includes("san francisco") || l.includes("bay area") || l.includes("oakland")) return "the Golden Gate Bridge draped in morning fog";
+  if (l.includes("new york") || l.includes("nyc") || l.includes("manhattan") || l.includes("brooklyn")) return "the Manhattan skyline and the Empire State Building";
+  if (l.includes("los angeles") || l.includes("hollywood") || l.includes("santa monica")) return "the Hollywood sign glowing on the hills";
+  if (l.includes("chicago")) return "the Chicago skyline and the Willis Tower";
+  if (l.includes("seattle")) return "the Seattle Space Needle against a cloudy sky";
+  if (l.includes("austin")) return "the Texas State Capitol dome at golden hour";
+  if (l.includes("boston")) return "the Charles River with sailboats and Fenway Park";
+  if (l.includes("miami")) return "Miami Beach and the turquoise Atlantic Ocean";
+  if (l.includes("denver")) return "the snow-capped Rocky Mountains";
+  if (l.includes("portland")) return "Mount Hood rising over Portland rooftops";
+  if (l.includes("nashville")) return "the Nashville skyline with the AT&T Batman Building";
+  if (l.includes("dallas") || l.includes("fort worth")) return "the Dallas skyline at sunset";
+  if (l.includes("atlanta")) return "the Atlanta skyline with Centennial Olympic Park";
+  if (l.includes("washington") || l.includes(" dc") || l.includes("d.c.")) return "the Washington Monument and Lincoln Memorial";
+  if (l.includes("london")) return "the London Eye and Big Ben along the Thames";
+  if (l.includes("toronto")) return "the CN Tower over Lake Ontario";
+  if (l.includes("sydney")) return "the Sydney Opera House and Harbour Bridge";
+  if (l.includes("paris")) return "the Eiffel Tower at dusk";
+  if (l.includes("tokyo")) return "Mount Fuji and the Tokyo skyline";
+  return "a beautiful sunny cityscape with blue skies and rolling hills";
+}
+
+async function generatePersonalizedImage(lead: LeadWebhookPayload, enrichment: ApifyLinkedInResult): Promise<string | null> {
+  "use step";
+
+  const firstName = (enrichment.firstName || lead.firstName || "the person").trim();
+  const lastName = (enrichment.lastName || lead.lastName || "").trim();
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
+  const company = (enrichment.companyName || lead.companyName || "their company").trim();
+  const jobTitle = enrichment.jobTitle || lead.title || "professional";
+  const location = enrichment.addressWithCountry || [lead.city, lead.state].filter(Boolean).join(", ") || "";
+  const university = enrichment.educations?.[0]?.title || "";
+  const headshotUrl = enrichment.profilePic || "";
+  const landmark = location ? getCityLandmark(location) : "a beautiful sunny cityscape";
+
+  const universityDetail = university
+    ? `The classroom walls are decorated with pennants, colors, and a banner for ${university} — the university they attended.`
+    : "The classroom has colorful ABC charts, number posters, and finger-paint artwork pinned to the walls.";
+
+  const prompt = [
+    `A hyper-realistic photograph of ${fullName}, a ${jobTitle} at ${company}.`,
+    headshotUrl ? `Their face should match this LinkedIn headshot: ${headshotUrl}` : "",
+    `They are sitting at a tiny, undersized kindergarten desk in a bright, cheerful kindergarten classroom.`,
+    `They look their actual adult age but they are bursting with pure, uncontrollable, childlike joy — enormous genuine smile, eyes wide, maybe hands clapping or raised in celebration.`,
+    `They are wearing a casual t-shirt that clearly shows the ${company} company name and logo on the front.`,
+    `Through the large classroom window behind them you can clearly see: ${landmark}.`,
+    universityDetail,
+    `The classroom has small colorful chairs, crayon drawings on the chalkboard, and alphabet tiles on the floor.`,
+    `Warm, bright natural lighting. Photorealistic, ultra-detailed. Square 1:1 crop. No text overlays.`,
+  ].filter(Boolean).join(" ");
+
+  console.log("[step 2/7 | personalized-image] Generating for:", fullName, "| company:", company, "| location:", location || "(unknown)");
+
+  try {
+    const result = await generateImage({
+      model: "xai/grok-imagine-image",
+      prompt,
+      aspectRatio: "1:1",
+    });
+
+    const base64 = result.images?.[0]?.base64;
+    if (!base64) throw new Error("No image returned from model");
+
+    console.log("[step 2/7 | personalized-image] Done — image size (base64 chars):", base64.length);
+    return base64;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[step 2/7 | personalized-image] Failed, skipping image —", msg);
+    return null;
+  }
+}
+
+// ─── Step 3: AI outreach email draft ──────────────────────────────────────────
 
 function buildFallbackDraft(lead: LeadWebhookPayload, enrichment: ApifyLinkedInResult, productUrl: string, calendlyLink: string): OutreachDraft {
   const firstName = (lead.firstName || enrichment.firstName || "there").trim();
@@ -188,7 +273,7 @@ async function generateOutreachEmail(lead: LeadWebhookPayload, enrichment: Apify
   const role = enrichment.jobTitle || lead.title || "";
   const company = enrichment.companyName || lead.companyName || "";
 
-  console.log("[step 2/6 | ai-email-draft] Generating outreach email via model:", model, "| to:", firstName);
+  console.log("[step 3/7 | ai-email-draft] Generating outreach email via model:", model, "| to:", firstName);
 
   const skills = (enrichment.skills ?? []).slice(0, 5).map((s) => s?.title).filter(Boolean).join(", ");
   const updates = (enrichment.updates ?? [])
@@ -259,7 +344,7 @@ Output example
       temperature: 0.3,
     });
 
-    console.log("[step 2/6 | ai-email-draft] Done — finishReason:", finishReason, "| tokens:", JSON.stringify(usage));
+    console.log("[step 3/7 | ai-email-draft] Done — finishReason:", finishReason, "| tokens:", JSON.stringify(usage));
 
     const cleaned = text.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "").trim();
     const match = cleaned.match(/\{[\s\S]*\}/);
@@ -270,12 +355,12 @@ Output example
 
     return { subject: String(parsed.subject), body: String(parsed.body) };
   } catch (error) {
-    console.warn("[step 2/6 | ai-email-draft] Falling back to template —", error instanceof Error ? error.message : String(error));
+    console.warn("[step 3/7 | ai-email-draft] Falling back to template —", error instanceof Error ? error.message : String(error));
     return buildFallbackDraft(lead, enrichment, productUrl, calendlyLink);
   }
 }
 
-// ─── Step 3: Build tracking pixel URL ─────────────────────────────────────────
+// ─── Step 4: Build tracking pixel URL ─────────────────────────────────────────
 
 async function buildTrackingPixelUrl(leadEmail: string): Promise<string> {
   "use step";
@@ -286,23 +371,23 @@ async function buildTrackingPixelUrl(leadEmail: string): Promise<string> {
   const id = encodeURIComponent(leadEmail || "unknown");
   const url = `${base.replace(/\/$/, "")}/api/track-open?id=${id}`;
 
-  console.log("[step 3/6 | tracking-pixel] Pixel URL built for:", leadEmail || "(no email)");
+  console.log("[step 4/7 | tracking-pixel] Pixel URL built for:", leadEmail || "(no email)");
   return url;
 }
 
-// ─── Step 4: Wrap in branded HTML template + inject pixel ─────────────────────
+// ─── Step 5: Wrap in branded HTML template + inject pixel ─────────────────────
 
-async function injectTrackingPixel(draft: OutreachDraft, pixelUrl: string): Promise<OutreachDraft> {
+async function injectTrackingPixel(draft: OutreachDraft, pixelUrl: string, personalizedImage: string | null): Promise<OutreachDraft> {
   "use step";
 
   const productUrl = process.env.OUTREACH_PRODUCT_URL || "https://coursepilot.example/";
-  const html = wrapInEmailTemplate(draft.body, pixelUrl, productUrl);
+  const html = wrapInEmailTemplate(draft.body, pixelUrl, productUrl, personalizedImage);
 
-  console.log("[step 4/6 | inject-pixel] Wrapped in branded HTML template and injected tracking pixel");
+  console.log("[step 5/7 | inject-pixel] Wrapped in branded HTML template", personalizedImage ? "(with personalized image)" : "(no image)", "— injected tracking pixel");
   return { subject: draft.subject, body: html };
 }
 
-// ─── Step 5: Send via Gmail SMTP ──────────────────────────────────────────────
+// ─── Step 6: Send via Gmail SMTP ──────────────────────────────────────────────
 
 async function sendOutreachEmail(to: string, subject: string, html: string): Promise<OutreachSendResult> {
   "use step";
@@ -315,14 +400,14 @@ async function sendOutreachEmail(to: string, subject: string, html: string): Pro
   const effectiveTo = process.env.SMTP_FORCE_TO || to;
 
   console.log(
-    "[step 5/6 | send-email] Sending to:", effectiveTo || "(no recipient)",
+    "[step 6/7 | send-email] Sending to:", effectiveTo || "(no recipient)",
     process.env.SMTP_FORCE_TO ? `(forced from: ${to})` : "",
     "| subject:", subject,
   );
 
   if (!gmailUser || !gmailPass || !effectiveTo) {
     const reason = !gmailUser ? "missing GMAIL_USER" : !gmailPass ? "missing GMAIL_APP_PASSWORD" : "no recipient address";
-    console.warn("[step 5/6 | send-email] Mock mode —", reason);
+    console.warn("[step 6/7 | send-email] Mock mode —", reason);
     return { sent: true, mode: "mock", message: `Mock send (${reason}).` };
   }
 
@@ -338,16 +423,16 @@ async function sendOutreachEmail(to: string, subject: string, html: string): Pro
       subject,
       html,
     });
-    console.log("[step 5/6 | send-email] Sent — message ID:", info.messageId, "| to:", effectiveTo);
+    console.log("[step 6/7 | send-email] Sent — message ID:", info.messageId, "| to:", effectiveTo);
     return { sent: true, mode: "real", message: "Email sent via Gmail SMTP.", providerId: info.messageId };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[step 5/6 | send-email] SMTP error:", msg);
+    console.error("[step 6/7 | send-email] SMTP error:", msg);
     return { sent: false, mode: "real", message: msg };
   }
 }
 
-// ─── Step 6: Log the outreach record ──────────────────────────────────────────
+// ─── Step 7: Log the outreach record ──────────────────────────────────────────
 
 async function logOutreachRecord(record: Omit<OutreachLogRecord, "id" | "loggedAt">): Promise<OutreachLogRecord> {
   "use step";
@@ -358,7 +443,7 @@ async function logOutreachRecord(record: Omit<OutreachLogRecord, "id" | "loggedA
     ...record,
   };
 
-  console.log("[step 6/6 | outreach-log]", JSON.stringify(full));
+  console.log("[step 7/7 | outreach-log]", JSON.stringify(full));
   return full;
 }
 
@@ -370,10 +455,11 @@ export async function runLeadOutreachWorkflow(lead: LeadWebhookPayload) {
   console.log("[workflow | lead-outreach] Starting — lead:", lead.firstName, lead.lastName, "| email:", lead.businessEmail, "| purpose:", lead.purpose);
 
   const enrichment = await runApifyLinkedInActor(lead.linkedinUrl, lead);
+  const personalizedImage = await generatePersonalizedImage(lead, enrichment);
   const draft = await generateOutreachEmail(lead, enrichment);
   const businessEmail = lead.businessEmail || "";
   const pixelUrl = await buildTrackingPixelUrl(businessEmail);
-  const finalEmail = await injectTrackingPixel(draft, pixelUrl);
+  const finalEmail = await injectTrackingPixel(draft, pixelUrl, personalizedImage);
   const send = await sendOutreachEmail(businessEmail, finalEmail.subject, finalEmail.body);
   const record = await logOutreachRecord({ lead, enrichment, draft: finalEmail, send });
 
