@@ -18,43 +18,78 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, productUrl: string)
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CoursePilot</title>
 </head>
-<body style="margin:0;padding:0;background:#f5f7fa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fa;padding:32px 16px;">
+<body style="margin:0;padding:0;background:#eef2f7;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f7;padding:40px 16px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
-          <!-- Header -->
+          <!-- Logo bar above card -->
           <tr>
-            <td style="background:#2563eb;padding:24px 36px;text-align:left;">
-              <img src="${logoUrl}" alt="CoursePilot" width="36" height="36" style="display:inline-block;vertical-align:middle;border-radius:8px;" />
-              <span style="display:inline-block;vertical-align:middle;margin-left:10px;color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">CoursePilot</span>
+            <td align="center" style="padding-bottom:20px;">
+              <img src="${logoUrl}" alt="CoursePilot" width="40" height="40" style="border-radius:10px;display:inline-block;" />
             </td>
           </tr>
 
-          <!-- Body -->
+          <!-- Card -->
           <tr>
-            <td style="padding:36px 36px 24px;color:#1e293b;font-size:15px;line-height:1.7;">
-              ${body}
-            </td>
-          </tr>
+            <td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
-          <!-- Divider -->
-          <tr>
-            <td style="padding:0 36px;">
-              <hr style="border:none;border-top:1px solid #e2e8f0;margin:0;" />
+              <!-- Blue accent bar -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);padding:28px 40px 28px;">
+                    <p style="margin:0;color:#bfdbfe;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">Personal outreach</p>
+                    <p style="margin:6px 0 0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.4px;line-height:1.3;">A note from Alex at CoursePilot</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Body -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:36px 40px 8px;color:#1e293b;font-size:15px;line-height:1.8;">
+                    ${body}
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Divider -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:0 40px;">
+                    <div style="border-top:1px solid #f1f5f9;"></div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Sender signature -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:24px 40px 32px;">
+                    <table cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="vertical-align:middle;padding-right:14px;">
+                          <img src="${logoUrl}" alt="Alex" width="44" height="44" style="border-radius:50%;display:block;border:2px solid #e2e8f0;" />
+                        </td>
+                        <td style="vertical-align:middle;">
+                          <p style="margin:0;font-size:14px;font-weight:700;color:#0f172a;">Alex</p>
+                          <p style="margin:2px 0 0;font-size:13px;color:#64748b;">CoursePilot · <a href="${productUrl}" style="color:#2563eb;text-decoration:none;font-weight:500;">${productUrl.replace(/https?:\/\//, "")}</a></p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding:20px 36px 28px;color:#94a3b8;font-size:12px;line-height:1.6;">
-              <p style="margin:0 0 4px;">
-                <strong style="color:#64748b;">Alex from CoursePilot</strong><br />
-                Solutions Architect · <a href="${productUrl}" style="color:#2563eb;text-decoration:none;">${productUrl.replace(/https?:\/\//, "")}</a>
-              </p>
-              <p style="margin:8px 0 0;color:#cbd5e1;font-size:11px;">
-                © ${currentYear} CoursePilot. You're receiving this because you submitted an inquiry at coursepilot.example.
+            <td align="center" style="padding:24px 0 8px;">
+              <p style="margin:0;color:#94a3b8;font-size:11px;line-height:1.6;">
+                © ${currentYear} CoursePilot. You received this because you submitted an inquiry.<br />
               </p>
             </td>
           </tr>
