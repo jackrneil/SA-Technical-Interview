@@ -52,9 +52,10 @@ export function LeadForm() {
   }
 
   return (
-    <form className="card form" onSubmit={onSubmit}>
-      <p className="eyebrow">Lead intake</p>
-      <h2>Generate an activation brief</h2>
+    <form className="content-card form" onSubmit={onSubmit}>
+      <h2 className="section-title" style={{ fontSize: "1.4rem", marginBottom: "0.25rem" }}>
+        Generate an activation brief
+      </h2>
       <div className="field">
         <label htmlFor="fullName">Full name</label>
         <input id="fullName" required value={form.fullName} onChange={(event) => setForm({ ...form, fullName: event.target.value })} />
@@ -101,7 +102,7 @@ export function LeadForm() {
         </select>
       </div>
       {error ? <p className="error-text">{error}</p> : null}
-      <button className="button" type="submit">
+      <button className="btn btn-primary" type="submit">
         Generate brief
       </button>
     </form>

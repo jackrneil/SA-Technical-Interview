@@ -19,43 +19,51 @@ const hallucinationChecks = [
 export default function EvalsPage() {
   return (
     <main>
-      <section className="card hero">
-        <p className="eyebrow">Lightweight evaluation</p>
-        <h1>Rubric checks for outreach quality and hallucination risk.</h1>
-        <p className="lead">
+      <section style={{ marginBottom: "2rem" }}>
+        <span className="eyebrow-pill">Lightweight evaluation</span>
+        <h1 className="section-title" style={{ marginTop: "1rem" }}>
+          Rubric checks for outreach quality and hallucination risk.
+        </h1>
+        <p className="section-sub">
           The app evaluates every generated email for personalization, accuracy, business value, safety, CTA quality, and obvious unsupported claims.
         </p>
       </section>
-      <section className="section grid-3">
+      <section className="grid-3">
         {rubric.map(([title, description]) => (
-          <div className="card" key={title}>
-            <h3>{title}</h3>
+          <div className="content-card" key={title}>
+            <h3 style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: "0.4rem" }}>{title}</h3>
             <p>{description}</p>
           </div>
         ))}
       </section>
-      <section className="card section">
-        <h2>Hallucination regression checks</h2>
-        <ul>
+      <section className="content-card" style={{ marginTop: "2rem" }}>
+        <h2 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: "0.5rem" }}>Hallucination regression checks</h2>
+        <ul style={{ paddingLeft: "1.1rem", color: "var(--muted)" }}>
           {hallucinationChecks.map((check) => (
-            <li key={check}>{check}</li>
+            <li key={check} style={{ marginBottom: "0.35rem" }}>
+              {check}
+            </li>
           ))}
         </ul>
       </section>
-      <section className="section grid-3">
+      <section className="grid-3" style={{ marginTop: "2rem" }}>
         {evaluationTestCases.map((testCase) => (
-          <div className="card" key={testCase.id}>
-            <p className="eyebrow">{testCase.id}</p>
-            <h3>
+          <div className="content-card" key={testCase.id}>
+            <span className="eyebrow-pill">{testCase.id}</span>
+            <h3 style={{ marginTop: "0.85rem", fontSize: "1.05rem", fontWeight: 700, marginBottom: "0.25rem" }}>
               {testCase.input.fullName}, {testCase.input.companyName}
             </h3>
             <p>{testCase.input.primaryGoal}</p>
-            <ul>
+            <ul style={{ paddingLeft: "1.1rem", color: "var(--muted)", marginTop: "0.5rem" }}>
               {testCase.expected.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item} style={{ marginBottom: "0.25rem" }}>
+                  {item}
+                </li>
               ))}
             </ul>
-            <span className="status success">example pass criteria</span>
+            <span className="status success" style={{ marginTop: "0.85rem" }}>
+              example pass criteria
+            </span>
           </div>
         ))}
       </section>

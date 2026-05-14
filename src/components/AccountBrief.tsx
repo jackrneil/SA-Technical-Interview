@@ -12,9 +12,9 @@ export function AccountBrief({
   aiResult: AIResult;
 }) {
   return (
-    <div className="card">
-      <p className="eyebrow">Internal brief</p>
-      <h2>{lead.companyName}</h2>
+    <div className="content-card">
+      <span className="eyebrow-pill">Internal brief</span>
+      <h2 style={{ marginTop: "0.85rem", fontSize: "1.5rem", fontWeight: 800 }}>{lead.companyName}</h2>
       <div className="stack">
         <section>
           <h3>Lead summary</h3>

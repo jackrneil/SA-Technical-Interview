@@ -12,8 +12,8 @@ export function ArchitecturePanel() {
   return (
     <div className="grid-3">
       {items.map(([title, body]) => (
-        <div className="card" key={title}>
-          <h3>{title}</h3>
+        <div className="content-card" key={title}>
+          <h3 style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: "0.45rem" }}>{title}</h3>
           <p>{body}</p>
         </div>
       ))}

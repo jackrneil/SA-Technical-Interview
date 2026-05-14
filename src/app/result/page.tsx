@@ -48,12 +48,14 @@ export default function ResultPage() {
   if (!result) {
     return (
       <main>
-        <div className="card">
-          <p className="eyebrow">No result yet</p>
-          <h1>Generate a lead brief first.</h1>
+        <div className="content-card" style={{ maxWidth: "640px", margin: "0 auto", textAlign: "center" }}>
+          <span className="eyebrow-pill">No result yet</span>
+          <h1 className="section-title" style={{ marginTop: "1rem" }}>
+            Generate a lead brief first.
+          </h1>
           <p>Results are kept in browser session storage for this take-home so scraped data is not persisted in a database.</p>
-          <Link className="button" href="/">
-            Back to intake
+          <Link className="btn btn-primary" href="/intake" style={{ marginTop: "1rem" }}>
+            Go to intake
           </Link>
         </div>
       </main>
@@ -62,9 +64,11 @@ export default function ResultPage() {
 
   return (
     <main>
-      <section className="card hero">
-        <p className="eyebrow">Human review</p>
-        <h1>{result.lead.fullName}</h1>
+      <section style={{ marginBottom: "2rem" }}>
+        <span className="eyebrow-pill">Human review</span>
+        <h1 className="section-title" style={{ marginTop: "1rem" }}>
+          {result.lead.fullName}
+        </h1>
         <p className="lead">
           {result.lead.role} at {result.lead.companyName}. Review the account brief, generated email, evaluation result, and workflow timeline before
           sending.
@@ -76,7 +80,7 @@ export default function ResultPage() {
         </div>
       </section>
 
-      <div className="two-column section">
+      <div className="two-column">
         <div className="stack">
           <AccountBrief {...result} />
           <WorkflowTimeline steps={result.workflow} />
@@ -84,15 +88,15 @@ export default function ResultPage() {
         <div className="stack">
           <EmailPreview aiResult={result.aiResult} />
           <EvaluationPanel evaluation={result.evaluation} />
-          <div className="card">
-            <p className="eyebrow">Email send</p>
-            <h2>Send after review</h2>
+          <div className="content-card">
+            <span className="eyebrow-pill">Email send</span>
+            <h2 style={{ marginTop: "0.85rem", fontSize: "1.25rem", fontWeight: 700 }}>Send after review</h2>
             <p>Real sending uses Resend only when server-side credentials are configured. Otherwise the app returns mock mode.</p>
-            <button className="button" disabled={sending} onClick={sendEmail}>
+            <button className="btn btn-primary" disabled={sending} onClick={sendEmail} style={{ marginTop: "0.85rem" }}>
               {sending ? "Sending..." : "Send email"}
             </button>
             {sendState ? (
-              <p>
+              <p style={{ marginTop: "0.75rem" }}>
                 <strong>{sendState.mode === "real" ? "Real send" : "Mock send"}:</strong> {sendState.message}
               </p>
             ) : null}

@@ -10,9 +10,9 @@ const categories: Array<keyof Pick<EvaluationResult, "personalization" | "accura
 
 export function EvaluationPanel({ evaluation }: { evaluation: EvaluationResult }) {
   return (
-    <div className="card">
-      <p className="eyebrow">Evaluation result</p>
-      <div className="score">{evaluation.score}/100</div>
+    <div className="content-card">
+      <span className="eyebrow-pill">Evaluation result</span>
+      <div className="score" style={{ marginTop: "0.6rem" }}>{evaluation.score}/100</div>
       <p>{evaluation.overallPass ? "Pass: ready for human review." : "Review suggested before sending."}</p>
       <div className="stack">
         {categories.map((category) => {
