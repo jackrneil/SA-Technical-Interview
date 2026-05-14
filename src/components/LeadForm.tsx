@@ -36,10 +36,11 @@ export function LeadForm() {
         throw new Error(payload.error ?? "Something went wrong. Please try again.");
       }
 
+      // Keep loading=true so the spinner stays visible while Next.js navigates.
+      // The page unmount handles cleanup — we never call setLoading(false) on success.
       router.push(`/confirmation?runId=${encodeURIComponent(payload.runId ?? "")}`);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Something went wrong. Please try again.");
-    } finally {
       setLoading(false);
     }
   }
