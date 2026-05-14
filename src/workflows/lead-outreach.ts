@@ -225,39 +225,22 @@ async function generatePersonalizedImage(lead: LeadWebhookPayload, enrichment: A
   }
 
   try {
-    // Fetch the LinkedIn headshot and convert to base64 so we can pass it as a
-    // reference image to flux-kontext-pro, which preserves the real face.
-    let headshotBase64: string | null = null;
-    if (headshotUrl) {
-      try {
-        const resp = await fetch(headshotUrl);
-        if (resp.ok) {
-          const arrayBuf = await resp.arrayBuffer();
-          headshotBase64 = Buffer.from(arrayBuf).toString("base64");
-          console.log("[step 2/7 | personalized-image] Headshot fetched — size:", headshotBase64.length, "chars");
-        } else {
-          console.warn("[step 2/7 | personalized-image] Headshot fetch failed —", resp.status);
-        }
-      } catch (fetchErr) {
-        console.warn("[step 2/7 | personalized-image] Headshot fetch error —", fetchErr instanceof Error ? fetchErr.message : String(fetchErr));
-      }
-    }
+    // flux-kontext-pro accepts input images via prompt.images — the SDK passes
+    // them directly to BFL's API as reference images for face-accurate editing.
+    // URLs and base64 strings are both supported; URL is simpler and avoids
+    // the base64 fetch step entirely.
+    const useKontext = !!headshotUrl;
+    const model = useKontext ? "bfl/flux-kontext-pro" : "xai/grok-imagine-image";
+    console.log("[step 2/7 | personalized-image] Calling", model, "| img2img:", useKontext);
 
-    // Use flux-kontext-pro (img2img) when we have a real headshot — it preserves
-    // the person's actual face, clothing style, and age. Fall back to grok
-    // text-to-image when no headshot is available.
-    const model = headshotBase64 ? "bfl/flux-kontext-pro" : "xai/grok-imagine-image";
-    console.log("[step 2/7 | personalized-image] Calling", model, "...");
-
-    const result = await generateImage({
+    // The BFL SDK documents prompt.images for img2img; cast to any to satisfy
+    // the gateway string-model type which only declares prompt as string.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const generateImageAny = generateImage as (opts: any) => Promise<any>;
+    const result = await generateImageAny({
       model,
-      prompt,
+      prompt: useKontext ? { text: prompt, images: [headshotUrl] } : prompt,
       aspectRatio: "1:1",
-      ...(headshotBase64 ? {
-        providerOptions: {
-          bfl: { input_image: headshotBase64 },
-        },
-      } : {}),
     });
 
     const base64 = result.images?.[0]?.base64;
