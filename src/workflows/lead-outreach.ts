@@ -273,23 +273,34 @@ async function sendOutreachEmail(to: string, subject: string, html: string): Pro
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.FROM_EMAIL;
 
-  console.log("[step 5/6 | send-email] Sending to:", to || "(no recipient)", "| subject:", subject);
+  // RESEND_FORCE_TO overrides the recipient — useful when FROM_EMAIL is the
+  // Resend test sender (onboarding@resend.dev) which can only deliver to the
+  // account owner's address. Set this in Vercel env vars while testing, then
+  // remove it once you verify a domain at resend.com/domains.
+  const effectiveTo = process.env.RESEND_FORCE_TO || to;
 
-  if (!apiKey || !from || !to) {
+  console.log(
+    "[step 5/6 | send-email] Sending to:", effectiveTo || "(no recipient)",
+    process.env.RESEND_FORCE_TO ? `(forced from: ${to})` : "",
+    "| subject:", subject,
+  );
+
+  if (!apiKey || !from || !effectiveTo) {
     const reason = !apiKey ? "missing RESEND_API_KEY" : !from ? "missing FROM_EMAIL" : "no recipient address";
     console.warn("[step 5/6 | send-email] Mock mode —", reason);
     return { sent: true, mode: "mock", message: `Mock send (${reason}).` };
   }
 
   const resend = new Resend(apiKey);
-  const { data, error } = await resend.emails.send({ from, to, subject, html });
+  const { data, error } = await resend.emails.send({ from, to: effectiveTo, subject, html });
 
   if (error) {
     console.error("[step 5/6 | send-email] Resend error:", error.message);
+    console.error("[step 5/6 | send-email] Intended recipient was:", to, "| from:", from);
     return { sent: false, mode: "real", message: error.message };
   }
 
-  console.log("[step 5/6 | send-email] Sent — Resend ID:", data?.id);
+  console.log("[step 5/6 | send-email] Sent — Resend ID:", data?.id, "| to:", effectiveTo);
   return { sent: true, mode: "real", message: "Email sent via Resend.", providerId: data?.id };
 }
 
