@@ -65,12 +65,14 @@ export function validateFormSubmission(input: unknown): FormValidationResult {
 
   const submission = {
     fullName: asString(body.fullName),
+    email: asString(body.email),
     linkedinUrl: asString(body.linkedinUrl),
     primaryGoal: asString(body.primaryGoal),
     details: asString(body.details),
   };
 
   if (!submission.fullName) errors.fullName = "Your name is required.";
+  if (!emailPattern.test(submission.email)) errors.email = "A valid email address is required.";
   if (!isLinkedInProfileUrl(submission.linkedinUrl)) errors.linkedinUrl = "Use a valid LinkedIn profile URL.";
   if (!primaryGoals.includes(submission.primaryGoal as LeadInput["primaryGoal"])) {
     errors.primaryGoal = "Choose a purpose from the list.";
@@ -88,6 +90,7 @@ export function validateFormSubmission(input: unknown): FormValidationResult {
     errors: {},
     data: {
       fullName: submission.fullName,
+      email: submission.email,
       linkedinUrl: submission.linkedinUrl,
       primaryGoal: submission.primaryGoal as LeadInput["primaryGoal"],
       details: submission.details || undefined,

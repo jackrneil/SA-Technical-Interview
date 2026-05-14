@@ -7,6 +7,7 @@ import { primaryGoals } from "@/lib/types";
 
 const initialForm = {
   fullName: "",
+  email: "",
   linkedinUrl: "",
   primaryGoal: primaryGoals[0] as (typeof primaryGoals)[number],
   details: "",
@@ -32,20 +33,19 @@ export function LeadForm() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to process lead.");
+        throw new Error(payload.error ?? "Something went wrong. Please try again.");
       }
 
-      sessionStorage.setItem("coursepilot:lastResult", JSON.stringify(payload));
-      router.push("/result");
+      router.push(`/confirmation?runId=${encodeURIComponent(payload.runId ?? "")}`);
     } catch (submissionError) {
-      setError(submissionError instanceof Error ? submissionError.message : "Unable to process lead.");
+      setError(submissionError instanceof Error ? submissionError.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   if (loading) {
-    return <LoadingCard message="Enriching profile and starting the workflow" />;
+    return <LoadingCard message="Sending your request" />;
   }
 
   return (
@@ -57,7 +57,19 @@ export function LeadForm() {
           required
           placeholder="Jane Doe"
           value={form.fullName}
-          onChange={(event) => setForm({ ...form, fullName: event.target.value })}
+          onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+        />
+      </div>
+
+      <div className="field">
+        <label htmlFor="email">Work email</label>
+        <input
+          id="email"
+          type="email"
+          required
+          placeholder="jane@yourcompany.com"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
       </div>
 
@@ -69,7 +81,7 @@ export function LeadForm() {
           required
           placeholder="https://www.linkedin.com/in/yourhandle"
           value={form.linkedinUrl}
-          onChange={(event) => setForm({ ...form, linkedinUrl: event.target.value })}
+          onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
         />
       </div>
 
@@ -79,7 +91,7 @@ export function LeadForm() {
           id="primaryGoal"
           required
           value={form.primaryGoal}
-          onChange={(event) => setForm({ ...form, primaryGoal: event.target.value as typeof form.primaryGoal })}
+          onChange={(e) => setForm({ ...form, primaryGoal: e.target.value as typeof form.primaryGoal })}
         >
           {primaryGoals.map((goal) => (
             <option key={goal} value={goal}>
@@ -90,30 +102,26 @@ export function LeadForm() {
       </div>
 
       <div className="field">
-        <label htmlFor="details">Anything else we should know? (optional)</label>
+        <label htmlFor="details">Anything else? (optional)</label>
         <textarea
           id="details"
-          rows={4}
+          rows={3}
           maxLength={2000}
-          placeholder="Tell us a bit about your team, students, or what success looks like."
+          placeholder="Tell us about your team, students, or what success looks like."
           value={form.details}
-          onChange={(event) => setForm({ ...form, details: event.target.value })}
+          onChange={(e) => setForm({ ...form, details: e.target.value })}
         />
       </div>
 
       {error ? <p className="error-text">{error}</p> : null}
 
       <button className="btn btn-primary btn-arrow lead-form-submit" type="submit">
-        <span>Start the workflow</span>
+        <span>Get started</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M5 12h14" />
           <path d="m13 6 6 6-6 6" />
         </svg>
       </button>
-      <p className="lead-form-hint">
-        We enrich your LinkedIn profile via Apify, draft a personalized outreach email with the Vercel AI SDK, and run the durable Workflow SDK
-        pipeline.
-      </p>
     </form>
   );
 }

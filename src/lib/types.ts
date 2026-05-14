@@ -12,6 +12,7 @@ export type WorkflowStatus = "success" | "warning" | "error" | "skipped";
 
 export interface FormSubmission {
   fullName: string;
+  email: string;
   linkedinUrl: string;
   primaryGoal: PrimaryGoal;
   details?: string;

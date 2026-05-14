@@ -7,8 +7,7 @@ export default function IntakePage() {
         <span className="eyebrow-pill">Lead intake</span>
         <h1 className="section-title intake-title">Tell us a little about yourself.</h1>
         <p className="section-sub">
-          Drop your LinkedIn and pick what you&apos;re here for. We&apos;ll enrich your profile, draft a personalized email with the Vercel AI SDK,
-          and start the durable Workflow SDK pipeline.
+          Drop your info below and Alex from CoursePilot will be in touch.
         </p>
       </section>
       <section className="intake-form-wrap">
