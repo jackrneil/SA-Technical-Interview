@@ -1,10 +1,10 @@
 export interface LeadWebhookPayload {
   linkedinUrl: string;
   firstName: string;
-  lastName: string;
-  title: string;
-  companyName: string;
-  businessEmail: string;
+  lastName?: string;
+  title?: string;
+  companyName?: string;
+  businessEmail?: string;
   website?: string;
   industry?: string;
   employeeCount?: string;
@@ -16,6 +16,10 @@ export interface LeadWebhookPayload {
   referrer?: string;
   tags?: string;
   capturedUrl?: string;
+  /** CoursePilot-specific purpose selected on the intake form. */
+  purpose?: string;
+  /** Free-form details the lead typed into the intake form. */
+  details?: string;
 }
 
 export interface ApifyLinkedInResult {

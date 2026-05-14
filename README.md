@@ -120,7 +120,25 @@ The `/evals` page displays the test cases and rubric categories.
 
 The lead outreach workflow mirrors the n8n pipeline (Webhook -> Apify -> AI Agent -> Pixel -> Inject Pixel -> Send -> Log) using the Vercel Workflow SDK.
 
-Trigger the workflow with the same flat-key JSON shape the n8n webhook used:
+### From the intake form
+
+The simplest path is the in-app intake form at `/intake`. It collects four fields:
+
+- Name
+- LinkedIn profile URL
+- Purpose (CoursePilot-specific dropdown)
+- Optional free-form details
+
+Submitting the form POSTs to `/api/intake`, which:
+
+1. Validates the submission.
+2. Calls Apify with the LinkedIn URL to fill in title, company, industry, and business email.
+3. Generates the AI brief + outreach draft for synchronous human review on `/result`.
+4. Starts the durable Workflow SDK run via `start(runLeadOutreachWorkflow, [...])` and returns the `workflowRunId`.
+
+### From the webhook (n8n-compatible)
+
+The webhook still accepts the original flat-key JSON shape so the n8n pipeline can be replaced one-for-one. `LinkedIn URL` + `First Name` (or `Full Name`) are the minimum required keys; everything else is now optional and is back-filled by the Apify step inside the workflow.
 
 ```bash
 curl -X POST http://localhost:3000/api/workflow/outreach \
@@ -128,14 +146,12 @@ curl -X POST http://localhost:3000/api/workflow/outreach \
   -d '{
     "LinkedIn URL": "https://www.linkedin.com/in/example",
     "First Name": "Alexandra",
-    "Last Name": "Scaccia",
-    "Title": "Director of Online Learning",
-    "Company Name": "UW Health",
-    "Business Email": "alex@example.com",
-    "Industry": "Education",
-    "Captured URL": "https://www.coursepilot.example/"
+    "Purpose": "Automate student outreach",
+    "Details": "We run a 12-week creator bootcamp."
   }'
 ```
+
+The webhook also accepts the full original n8n key set (`Last Name`, `Title`, `Company Name`, `Business Email`, `Industry`, `Captured URL`, etc.) if you want to bypass Apify enrichment with pre-known data.
 
 Node-by-node mapping:
 

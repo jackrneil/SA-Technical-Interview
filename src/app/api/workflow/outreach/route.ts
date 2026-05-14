@@ -17,29 +17,40 @@ function readString(record: Record<string, unknown>, key: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function splitFullName(value: string): { firstName: string; lastName: string } {
+  const trimmed = value.trim();
+  if (!trimmed) return { firstName: "", lastName: "" };
+  const parts = trimmed.split(/\s+/);
+  return { firstName: parts[0] ?? "", lastName: parts.slice(1).join(" ") };
+}
+
 function normalizePayload(input: unknown): LeadWebhookPayload | null {
   if (!input || typeof input !== "object") return null;
   const record = input as Record<string, unknown>;
   const body = (typeof record.body === "object" && record.body !== null ? (record.body as Record<string, unknown>) : record) as Record<string, unknown>;
 
   const linkedinUrl = readString(body, "LinkedIn URL") || readString(body, "linkedinUrl");
-  const firstName = readString(body, "First Name") || readString(body, "firstName");
-  const lastName = readString(body, "Last Name") || readString(body, "lastName");
-  const title = readString(body, "Title") || readString(body, "title");
-  const companyName = readString(body, "Company Name") || readString(body, "companyName");
-  const businessEmail = readString(body, "Business Email") || readString(body, "businessEmail");
+  if (!linkedinUrl) return null;
 
-  if (!linkedinUrl || !firstName || !companyName) {
-    return null;
+  let firstName = readString(body, "First Name") || readString(body, "firstName");
+  let lastName = readString(body, "Last Name") || readString(body, "lastName");
+  const fullName = readString(body, "Full Name") || readString(body, "fullName") || readString(body, "name");
+
+  if (!firstName && fullName) {
+    const split = splitFullName(fullName);
+    firstName = split.firstName;
+    lastName = lastName || split.lastName;
   }
+
+  if (!firstName) return null;
 
   return {
     linkedinUrl,
     firstName,
-    lastName,
-    title,
-    companyName,
-    businessEmail,
+    lastName: lastName || undefined,
+    title: readString(body, "Title") || readString(body, "title") || undefined,
+    companyName: readString(body, "Company Name") || readString(body, "companyName") || undefined,
+    businessEmail: readString(body, "Business Email") || readString(body, "businessEmail") || undefined,
     website: readString(body, "Website") || undefined,
     industry: readString(body, "Industry") || undefined,
     employeeCount: readString(body, "Employee Count") || undefined,
@@ -51,6 +62,8 @@ function normalizePayload(input: unknown): LeadWebhookPayload | null {
     referrer: readString(body, "Referrer") || undefined,
     tags: readString(body, "Tags") || undefined,
     capturedUrl: readString(body, "Captured URL") || undefined,
+    purpose: readString(body, "Purpose") || readString(body, "purpose") || readString(body, "primaryGoal") || undefined,
+    details: readString(body, "Details") || readString(body, "details") || undefined,
   };
 }
 
@@ -67,7 +80,7 @@ export async function POST(request: Request) {
 
   if (!payload) {
     return NextResponse.json(
-      { error: "Webhook requires LinkedIn URL, First Name, and Company Name in the body." },
+      { error: "Webhook requires at minimum a LinkedIn URL and a first name (or fullName)." },
       { status: 400 },
     );
   }

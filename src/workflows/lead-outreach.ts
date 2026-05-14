@@ -59,11 +59,18 @@ async function runApifyLinkedInActor(linkedinUrl: string, lead: LeadWebhookPaylo
 function buildFallbackDraft(lead: LeadWebhookPayload, enrichment: ApifyLinkedInResult, productUrl: string, calendlyLink: string): OutreachDraft {
   const firstName = (lead.firstName || enrichment.firstName || "there").trim();
   const company = (enrichment.companyName || lead.companyName || "your team").trim();
+  const purposeLine = lead.purpose
+    ? `<p>You mentioned you want to ${lead.purpose.toLowerCase()}. That usually starts as manual research and follow-up time before every conversation.</p>`
+    : `<p>With ${company}'s focus on ${lead.industry || "education"}, this likely shows up as research and follow-up time before each conversation.</p>`;
+  const detailsLine = lead.details
+    ? `<p>Noting what you shared: ${lead.details.replace(/[<>]/g, "").replace(/[.!?]+$/, "")}.</p>`
+    : "";
   return {
     subject: `Reducing manual outreach time at ${company}`,
     body:
       `<p>Hi ${firstName},</p>` +
-      `<p>Saw your interest from ${lead.capturedUrl || productUrl}. With ${company}'s focus on ${lead.industry || "education"}, this likely shows up as research and follow-up time before each conversation.</p>` +
+      purposeLine +
+      detailsLine +
       `<p>CoursePilot helps education teams turn an inbound visit into a personalized brief and outreach draft so a human only has to review and send.</p>` +
       `<p>${productUrl}</p>` +
       `<p>A typical outcome is faster lead response and higher reply rates without adding headcount.</p>` +
@@ -106,6 +113,12 @@ ${skills}
 Recent LinkedIn Activity
 ${updates}
 
+Stated Purpose On Intake Form
+${lead.purpose || "(not provided)"}
+
+Additional Details Provided By The Lead
+${lead.details || "(none)"}
+
 Website Context
 Viewed: ${lead.capturedUrl || productUrl}
 Seen At: ${lead.seenAt || ""}
@@ -120,7 +133,8 @@ ${calendlyLink}`;
 
 Strategic Requirements
 Write like a focused B2B operator, not a growth marketer.
-Anchor on a clear pain: the manual work it takes to research leads, write a personalized message, and follow up after a website visit.
+Anchor on the lead's stated purpose ("${lead.purpose || "not provided"}") and any additional details they shared.
+If the lead provided additional details, reference them specifically in paragraph 1 or 2 so the email feels personalized.
 Define CoursePilot in one precise sentence.
 Tie value directly to the recipient's role, company size, industry, or recent activity.
 Use proof framing without inventing metrics. If no metrics provided, speak in operational outcomes such as reduced research time, higher reply rate, and more personalized follow-up.
@@ -263,9 +277,10 @@ export async function runLeadOutreachWorkflow(lead: LeadWebhookPayload) {
 
   const enrichment = await runApifyLinkedInActor(lead.linkedinUrl, lead);
   const draft = await generateOutreachEmail(lead, enrichment);
-  const pixelUrl = await buildTrackingPixelUrl(lead.businessEmail);
+  const businessEmail = lead.businessEmail || "";
+  const pixelUrl = await buildTrackingPixelUrl(businessEmail);
   const finalEmail = await injectTrackingPixel(draft, pixelUrl);
-  const send = await sendOutreachEmail(lead.businessEmail, finalEmail.subject, finalEmail.body);
+  const send = await sendOutreachEmail(businessEmail, finalEmail.subject, finalEmail.body);
   const record = await logOutreachRecord({ lead, enrichment, draft: finalEmail, send });
 
   return {

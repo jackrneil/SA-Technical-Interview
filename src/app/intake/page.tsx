@@ -3,17 +3,15 @@ import { LeadForm } from "@/components/LeadForm";
 export default function IntakePage() {
   return (
     <main>
-      <section style={{ maxWidth: "720px", margin: "0 auto 2rem" }}>
+      <section className="intake-hero">
         <span className="eyebrow-pill">Lead intake</span>
-        <h1 className="section-title" style={{ marginTop: "1rem" }}>
-          Turn an inbound lead into a personalized brief.
-        </h1>
+        <h1 className="section-title intake-title">Tell us a little about yourself.</h1>
         <p className="section-sub">
-          Submit a lead and the agent will validate input, enrich the LinkedIn URL when configured, fetch public company context, draft outreach with
-          the Vercel AI SDK, and run a lightweight evaluation rubric.
+          Drop your LinkedIn and pick what you&apos;re here for. We&apos;ll enrich your profile, draft a personalized email with the Vercel AI SDK,
+          and start the durable Workflow SDK pipeline.
         </p>
       </section>
-      <section style={{ maxWidth: "720px", margin: "0 auto" }}>
+      <section className="intake-form-wrap">
         <LeadForm />
       </section>
     </main>

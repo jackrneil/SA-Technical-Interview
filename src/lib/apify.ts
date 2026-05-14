@@ -14,12 +14,17 @@ function mapApifyProfile(raw: unknown, lead: LeadInput): LinkedInProfile {
 
   return {
     name: pickString(profile, ["fullName", "name", "firstName"]) || lead.fullName,
-    headline: pickString(profile, ["headline", "occupation", "title"]) || `${lead.role} at ${lead.companyName}`,
-    location: pickString(profile, ["location", "addressWithoutCountry"]) || "Unknown",
-    currentCompany: pickString(profile, ["currentCompany", "companyName", "company"]) || lead.companyName,
-    currentRole: pickString(profile, ["currentRole", "jobTitle", "position", "title"]) || lead.role,
+    headline:
+      pickString(profile, ["headline", "occupation", "title"]) ||
+      (lead.role && lead.companyName ? `${lead.role} at ${lead.companyName}` : "Education professional"),
+    location: pickString(profile, ["addressWithCountry", "location", "addressWithoutCountry"]) || "Unknown",
+    currentCompany: pickString(profile, ["companyName", "currentCompany", "company"]) || lead.companyName || "Unknown company",
+    currentRole: pickString(profile, ["jobTitle", "currentRole", "position", "title"]) || lead.role || "Unknown role",
     about: pickString(profile, ["about", "summary", "description"]) || `Public profile context was limited for ${lead.fullName}.`,
-    profileImageUrl: pickString(profile, ["profilePicUrl", "profileImageUrl", "image"]) || undefined,
+    profileImageUrl: pickString(profile, ["profilePic", "profilePicUrl", "profileImageUrl", "image"]) || undefined,
+    email: pickString(profile, ["email", "publicEmail"]) || undefined,
+    companyWebsite: pickString(profile, ["companyWebsite", "website"]) || undefined,
+    companyIndustry: pickString(profile, ["companyIndustry", "industry"]) || undefined,
     source: "apify",
   };
 }

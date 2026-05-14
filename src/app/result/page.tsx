@@ -74,10 +74,16 @@ export default function ResultPage() {
           sending.
         </p>
         <div className="pill-row">
-          <span className="pill">{result.lead.primaryGoal}</span>
+          <span className="pill">Purpose: {result.lead.primaryGoal}</span>
           <span className="pill">Confidence {result.aiResult.confidenceScore}/100</span>
           <span className="pill">{result.evaluation.overallPass ? "Evaluation pass" : "Needs review"}</span>
+          {result.workflowRunId ? <span className="pill">Workflow run {result.workflowRunId.slice(0, 8)}</span> : null}
         </div>
+        {result.lead.details ? (
+          <p style={{ marginTop: "1rem", color: "#1f2937", fontSize: "0.95rem", lineHeight: 1.55 }}>
+            <strong>What they shared:</strong> {result.lead.details}
+          </p>
+        ) : null}
       </section>
 
       <div className="two-column">

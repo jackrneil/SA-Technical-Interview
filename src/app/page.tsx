@@ -473,13 +473,14 @@ export default function Home() {
           <h2>One workspace for everything education teams used to stitch together.</h2>
           <p>CoursePilot brings course building, outreach, analytics, and team workflows into a single AI-native product.</p>
         </div>
-        <div className="features-grid">
-          {features.map((feature) => (
-            <div className="feature-card" key={feature.title}>
-              <span className="icon-brand">{feature.icon}</span>
+        <div className="features-bento">
+          {features.map((feature, i) => (
+            <div className="feature-bento-card" key={feature.title}>
+              <div className="feature-bento-num">0{i + 1}</div>
+              <span className="feature-bento-icon">{feature.icon}</span>
               <h3>{feature.title}</h3>
               <p>{feature.body}</p>
-              <Link href="/intake" className="learn">
+              <Link href="/intake" className="feature-bento-learn">
                 Learn more <Arrow />
               </Link>
             </div>

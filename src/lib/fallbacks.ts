@@ -1,20 +1,22 @@
 import { AIResult, CompanyContext, LeadInput, LinkedInProfile } from "@/lib/types";
 
 export function fallbackLinkedInProfile(lead: LeadInput): LinkedInProfile {
+  const role = lead.role || "Unknown role";
+  const company = lead.companyName || "their company";
   return {
     name: lead.fullName,
-    headline: `${lead.role} at ${lead.companyName}`,
+    headline: `${role} at ${company}`,
     location: "Unknown",
-    currentCompany: lead.companyName,
-    currentRole: lead.role,
-    about: `Submitted lead for ${lead.companyName} with a goal to ${lead.primaryGoal.toLowerCase()}.`,
+    currentCompany: company,
+    currentRole: role,
+    about: `Submitted lead with a goal to ${lead.primaryGoal.toLowerCase()}.`,
     source: "fallback",
   };
 }
 
 export function fallbackCompanyContext(lead: LeadInput): CompanyContext {
   return {
-    name: lead.companyName,
+    name: lead.companyName || "Unknown company",
     website: lead.companyWebsite,
     detectedSignals: [lead.primaryGoal],
     source: "fallback",

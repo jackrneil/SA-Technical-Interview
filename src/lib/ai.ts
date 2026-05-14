@@ -30,8 +30,17 @@ function safeJsonParse(text: string): AIResult | null {
 }
 
 function buildPrompt(lead: LeadInput, linkedinProfile: LinkedInProfile, companyContext: CompanyContext, short = false): string {
+  const submittedLead = {
+    fullName: lead.fullName,
+    email: lead.email,
+    role: lead.role,
+    companyName: lead.companyName,
+    purpose: lead.primaryGoal,
+    detailsFromUser: lead.details || "(none provided)",
+  };
+
   const context = {
-    submittedLead: lead,
+    submittedLead,
     linkedinProfile,
     companyContext,
     coursePilot:
@@ -42,16 +51,18 @@ function buildPrompt(lead: LeadInput, linkedinProfile: LinkedInProfile, companyC
 
 Rules:
 - Return JSON only.
-- Do not invent facts.
+- Do not invent facts. Treat the LinkedIn profile and user-provided details as the only sources of truth.
+- If the lead provided "detailsFromUser", reference it specifically in leadSummary or coursePilotFit.
+- Tie the email to the lead's stated purpose ("${lead.primaryGoal}").
 - Frame pain points as likely or inferred when not explicitly provided.
 - Include fallbackNotes when enrichment or website context used fallback data.
 - Include missingContextQuestions when confidenceScore is below 70.
-- Keep the email professional, useful, and concise.
+- Keep the email professional, useful, and concise (under 160 words).
 
 Required keys: leadSummary, companySummary, likelyPainPoints, coursePilotFit, emailSubject, emailBody, meetingCTA, internalAccountNotes, confidenceScore, fallbackNotes, missingContextQuestions.
 
 Context:
-${JSON.stringify(short ? { submittedLead: lead, coursePilot: context.coursePilot } : context, null, 2)}`;
+${JSON.stringify(short ? { submittedLead, coursePilot: context.coursePilot } : context, null, 2)}`;
 }
 
 async function callModel(prompt: string): Promise<AIResult | null> {

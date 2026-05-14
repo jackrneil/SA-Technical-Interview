@@ -1,14 +1,21 @@
 export const primaryGoals = [
-  "Launch a new course",
-  "Increase student enrollment",
-  "Improve student onboarding",
-  "Automate follow up emails",
-  "Modernize course website",
+  "Launch courses with AI",
+  "Automate student outreach",
+  "Get enrollment insights",
+  "Manage a school or team",
+  "Just exploring",
 ] as const;
 
 export type PrimaryGoal = (typeof primaryGoals)[number];
 
 export type WorkflowStatus = "success" | "warning" | "error" | "skipped";
+
+export interface FormSubmission {
+  fullName: string;
+  linkedinUrl: string;
+  primaryGoal: PrimaryGoal;
+  details?: string;
+}
 
 export interface LeadInput {
   fullName: string;
@@ -18,6 +25,7 @@ export interface LeadInput {
   companyName: string;
   companyWebsite?: string;
   primaryGoal: PrimaryGoal;
+  details?: string;
 }
 
 export interface LinkedInProfile {
@@ -28,6 +36,9 @@ export interface LinkedInProfile {
   currentRole: string;
   about: string;
   profileImageUrl?: string;
+  email?: string;
+  companyWebsite?: string;
+  companyIndustry?: string;
   source: "apify" | "fallback";
 }
 
@@ -83,6 +94,7 @@ export interface IntakeResponse {
   aiResult: AIResult;
   evaluation: EvaluationResult;
   workflow: WorkflowStep[];
+  workflowRunId?: string;
 }
 
 export interface SendEmailRequest {
