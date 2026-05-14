@@ -206,14 +206,17 @@ async function generatePersonalizedImage(lead: LeadWebhookPayload, enrichment: A
 
   const prompt = [
     `A still, ultra-photorealistic photograph — NOT animated, NOT illustrated, NOT a painting — of a real adult human named ${fullName}.`,
-    headshotUrl ? `Their face must closely match this LinkedIn photo reference: ${headshotUrl}. Preserve their exact facial features, skin tone, hair, and age.` : "",
-    `${fullName} is a ${jobTitle} at ${company} and looks exactly their real adult age — they are NOT a child.`,
-    `They are seated at a comically tiny kindergarten desk inside a bright, colorful kindergarten classroom, wearing a casual t-shirt with the ${company} name and logo clearly printed on the front.`,
-    `They have a huge, genuine, ear-to-ear grin — the kind of delighted smile of someone who just got incredibly good news. Pure adult joy, not childlike.`,
-    `Through the large window behind them you can clearly see: ${landmark}.`,
+    headshotUrl ? `Their face and body must closely match this LinkedIn photo reference. Preserve their exact facial features, skin tone, hair color, and real adult age.` : "",
+    `${fullName} is a ${jobTitle} at ${company}. They are a full-grown adult, clearly in their 20s or older.`,
+    `They are seated at a tiny single-student kindergarten desk — the kind with a small attached seat — right in the center of a bright, colorful kindergarten classroom.`,
+    `Their full body is visible from head to toe. They are comically, absurdly oversized compared to everything around them — their knees are up near their chest, their adult body dwarfs the tiny desk completely.`,
+    `Surrounding them are actual kindergarten-age children sitting at identical tiny desks. The children are genuinely small, roughly half the height of ${fullName}. The size contrast is comedic and unmistakable.`,
+    `${fullName} is radiating overwhelming, almost ridiculous happiness — the biggest ear-to-ear smile in the room, eyes lit up, clearly the most excited person there by a massive margin. The children around them look calm and normal by comparison.`,
+    `${fullName} is wearing a casual t-shirt with the ${company} name and logo clearly printed on the front.`,
+    `Through the large classroom window you can clearly see: ${landmark}.`,
     universityDetail,
-    `The classroom has small colorful chairs, ABC posters, crayon drawings on the chalkboard, and alphabet floor tiles.`,
-    `Canon 5D Mark IV quality. Sharp focus on face. Natural warm light. No motion blur. No text overlays. Static photograph only.`,
+    `The classroom has colorful ABCs on the walls, crayon drawings on the chalkboard, and alphabet floor tiles.`,
+    `Full-body wide shot. Canon 5D Mark IV quality. Sharp focus, face clearly recognizable. Natural warm classroom light. No motion blur. No text overlays. Static photograph only.`,
   ].filter(Boolean).join(" ");
 
   const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
@@ -357,7 +360,7 @@ body: the 6-paragraph HTML string. Only <p>, <strong>, <em>, and <a> tags allowe
 Body must start exactly with: <p>Hi <strong>${firstName}</strong>,</p>
 Total word count: 130–180 words.
 Do NOT include a sign-off line (Alex from CoursePilot) — that goes in the email footer automatically.
-After the CTA, add one final short line as a PS — something natural and playful that references a personalised photo the reader will find at the bottom of the email. For example: "<p><em>P.S. We put together a little something for you — scroll down and take a look.</em></p>" — keep it light and one sentence only.
+After the CTA, add one final short line as a PS — visionary and slightly cinematic, hinting at a photo at the bottom of the email. It should feel like a bold, confident product moment. Examples of the right tone: "<p><em>P.S. Scroll down — we made you something. POV: you after your first CoursePilot launch.</em></p>" or "<p><em>P.S. We put together a vision of what's next for you — check the bottom.</em></p>" — vary it based on their purpose and company. One sentence, no emojis, no exclamation marks.
 
 Output example
 {"subject":"Faster follow-up for ${company || "your team"}","body":"<p>Hi <strong>${firstName}</strong>,</p><p>...</p>"}`;
