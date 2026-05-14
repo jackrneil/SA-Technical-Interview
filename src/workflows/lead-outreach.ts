@@ -48,15 +48,6 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string
                 </tr>
               </table>
 
-              ${imageUrl ? `<!-- Personalised image (hosted URL — renders in all clients) -->
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:0;line-height:0;font-size:0;">
-                    <img src="${imageUrl}" alt="Just for you" width="600" style="display:block;width:100%;max-width:600px;height:auto;" />
-                  </td>
-                </tr>
-              </table>` : ""}
-
               <!-- Body -->
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
@@ -78,7 +69,7 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string
               <!-- Sender signature -->
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="padding:24px 40px 32px;">
+                  <td style="padding:24px 40px ${imageUrl ? "16px" : "32px"};">
                     <table cellpadding="0" cellspacing="0">
                       <tr>
                         <td style="vertical-align:middle;padding-right:14px;">
@@ -93,6 +84,16 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string
                   </td>
                 </tr>
               </table>
+
+              ${imageUrl ? `<!-- Personalised image — bottom, centered, portrait width -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:0 40px 32px;text-align:center;">
+                    <p style="margin:0 0 12px;font-size:12px;color:#94a3b8;font-style:italic;">We put this together just for you.</p>
+                    <img src="${imageUrl}" alt="Just for you" width="280" style="display:inline-block;width:280px;height:280px;object-fit:cover;border-radius:12px;border:3px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,0.10);" />
+                  </td>
+                </tr>
+              </table>` : ""}
 
             </td>
           </tr>
@@ -204,15 +205,15 @@ async function generatePersonalizedImage(lead: LeadWebhookPayload, enrichment: A
     : "The classroom has colorful ABC charts, number posters, and finger-paint artwork pinned to the walls.";
 
   const prompt = [
-    `A hyper-realistic photograph of ${fullName}, a ${jobTitle} at ${company}.`,
-    headshotUrl ? `Their face should match this LinkedIn headshot: ${headshotUrl}` : "",
-    `They are sitting at a tiny, undersized kindergarten desk in a bright, cheerful kindergarten classroom.`,
-    `They look their actual adult age but they are bursting with pure, uncontrollable, childlike joy — enormous genuine smile, eyes wide, maybe hands clapping or raised in celebration.`,
-    `They are wearing a casual t-shirt that clearly shows the ${company} company name and logo on the front.`,
-    `Through the large classroom window behind them you can clearly see: ${landmark}.`,
+    `A still, ultra-photorealistic photograph — NOT animated, NOT illustrated, NOT a painting — of a real adult human named ${fullName}.`,
+    headshotUrl ? `Their face must closely match this LinkedIn photo reference: ${headshotUrl}. Preserve their exact facial features, skin tone, hair, and age.` : "",
+    `${fullName} is a ${jobTitle} at ${company} and looks exactly their real adult age — they are NOT a child.`,
+    `They are seated at a comically tiny kindergarten desk inside a bright, colorful kindergarten classroom, wearing a casual t-shirt with the ${company} name and logo clearly printed on the front.`,
+    `They have a huge, genuine, ear-to-ear grin — the kind of delighted smile of someone who just got incredibly good news. Pure adult joy, not childlike.`,
+    `Through the large window behind them you can clearly see: ${landmark}.`,
     universityDetail,
-    `The classroom has small colorful chairs, crayon drawings on the chalkboard, and alphabet tiles on the floor.`,
-    `Warm, bright natural lighting. Photorealistic, ultra-detailed. Square 1:1 crop. No text overlays.`,
+    `The classroom has small colorful chairs, ABC posters, crayon drawings on the chalkboard, and alphabet floor tiles.`,
+    `Canon 5D Mark IV quality. Sharp focus on face. Natural warm light. No motion blur. No text overlays. Static photograph only.`,
   ].filter(Boolean).join(" ");
 
   const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
@@ -345,6 +346,7 @@ body: the 6-paragraph HTML string. Only <p>, <strong>, <em>, and <a> tags allowe
 Body must start exactly with: <p>Hi <strong>${firstName}</strong>,</p>
 Total word count: 130–180 words.
 Do NOT include a sign-off line (Alex from CoursePilot) — that goes in the email footer automatically.
+After the CTA, add one final short line as a PS — something natural and playful that references a personalised photo the reader will find at the bottom of the email. For example: "<p><em>P.S. We put together a little something for you — scroll down and take a look.</em></p>" — keep it light and one sentence only.
 
 Output example
 {"subject":"Faster follow-up for ${company || "your team"}","body":"<p>Hi <strong>${firstName}</strong>,</p><p>...</p>"}`;
