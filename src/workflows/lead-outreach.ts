@@ -215,9 +215,16 @@ async function generatePersonalizedImage(lead: LeadWebhookPayload, enrichment: A
     `Warm, bright natural lighting. Photorealistic, ultra-detailed. Square 1:1 crop. No text overlays.`,
   ].filter(Boolean).join(" ");
 
-  console.log("[step 2/7 | personalized-image] Generating for:", fullName, "| company:", company, "| location:", location || "(unknown)");
+  const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
+  console.log("[step 2/7 | personalized-image] Starting — name:", fullName, "| company:", company, "| location:", location || "(none)", "| blob ready:", hasBlobToken);
+
+  if (!hasBlobToken) {
+    console.warn("[step 2/7 | personalized-image] SKIPPED — BLOB_READ_WRITE_TOKEN is not set. Add Vercel Blob storage to this project in the Vercel dashboard.");
+    return null;
+  }
 
   try {
+    console.log("[step 2/7 | personalized-image] Calling xai/grok-imagine-image...");
     const result = await generateImage({
       model: "xai/grok-imagine-image",
       prompt,
@@ -225,20 +232,18 @@ async function generatePersonalizedImage(lead: LeadWebhookPayload, enrichment: A
     });
 
     const base64 = result.images?.[0]?.base64;
-    if (!base64) throw new Error("No image returned from model");
+    if (!base64) throw new Error("Model returned no image data");
 
-    // Upload to Vercel Blob so the email references a URL instead of a data URI.
-    // Gmail strips base64 data URIs and clips emails over ~102KB — a hosted URL
-    // fixes both problems.
+    console.log("[step 2/7 | personalized-image] Image generated — uploading to Vercel Blob...");
     const buffer = Buffer.from(base64, "base64");
     const filename = `outreach-images/${Date.now()}-${firstName.toLowerCase().replace(/\s+/g, "-")}.png`;
     const blob = await put(filename, buffer, { access: "public", contentType: "image/png" });
 
-    console.log("[step 2/7 | personalized-image] Uploaded to Blob —", blob.url);
+    console.log("[step 2/7 | personalized-image] SUCCESS — image URL:", blob.url);
     return blob.url;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.warn("[step 2/7 | personalized-image] Failed, skipping image —", msg);
+    console.error("[step 2/7 | personalized-image] FAILED —", msg);
     return null;
   }
 }
