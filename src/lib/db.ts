@@ -28,14 +28,14 @@ export async function ensureLeadsTable(): Promise<void> {
       -- Workflow outcome
       email_subject   TEXT,
       email_sent      BOOLEAN NOT NULL DEFAULT FALSE,
-      email_mode      TEXT,   -- 'real' | 'mock'
+      email_mode      TEXT,
       image_url       TEXT,
-      enrichment_source TEXT, -- 'apify' | 'fallback'
+      enrichment_source TEXT,
 
-      -- Eval
+      -- Eval (JSONB so arrays serialize cleanly from JS)
       eval_score      INTEGER,
       eval_pass       BOOLEAN,
-      hallucination_flags TEXT[],
+      hallucination_flags JSONB,
 
       -- AI-generated metadata
       fit_summary     TEXT,
@@ -45,6 +45,19 @@ export async function ensureLeadsTable(): Promise<void> {
       workflow_run_id TEXT
     )
   `;
+
+  // Migration: if the table was created with hallucination_flags TEXT[],
+  // convert it to JSONB so JavaScript arrays serialize correctly.
+  // Safe to run repeatedly — Postgres no-ops if it's already JSONB.
+  try {
+    await sql`
+      ALTER TABLE leads
+        ALTER COLUMN hallucination_flags TYPE JSONB
+        USING to_jsonb(hallucination_flags)
+    `;
+  } catch {
+    // Already JSONB or column doesn't exist yet — nothing to do.
+  }
 }
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -70,7 +83,7 @@ export interface LeadRow {
   enrichment_source: string | null;
   eval_score: number | null;
   eval_pass: boolean | null;
-  hallucination_flags: string[] | null;
+  hallucination_flags: string[] | null; // stored as JSONB, returned as parsed array
   fit_summary: string | null;
   possibilities: Array<{ title: string; body: string }> | null;
   workflow_run_id: string | null;
