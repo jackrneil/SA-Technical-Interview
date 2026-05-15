@@ -111,7 +111,7 @@ function wrapInEmailTemplate(body: string, pixelUrl: string, _productUrl: string
       </td>
     </tr>
   </table>
-  <img src="${pixelUrl}" width="1" height="1" style="display:none;" alt="" />
+  <img src="${pixelUrl}" width="1" height="1" style="display:block;max-height:1px;overflow:hidden;" alt="" />
 </body>
 </html>`;
 }
@@ -418,12 +418,36 @@ async function injectTrackingPixel(draft: OutreachDraft, pixelUrl: string, image
 
 // ─── Step 6: Send via Gmail SMTP ──────────────────────────────────────────────
 
+// Strip HTML to a clean plain-text fallback.
+// Spam filters (especially Google Workspace) heavily penalise HTML-only SMTP
+// mail. Sending multipart/alternative (text + html) is the single biggest
+// deliverability lever available without a dedicated sending domain.
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/td>/gi, " ")
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, "$2 — $1")
+    .replace(/<strong[^>]*>(.*?)<\/strong>/gi, "$1")
+    .replace(/<em[^>]*>(.*?)<\/em>/gi, "$1")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 async function sendOutreachEmail(to: string, subject: string, html: string): Promise<OutreachSendResult> {
   "use step";
 
   const gmailUser = process.env.GMAIL_USER;
   const gmailPass = process.env.GMAIL_APP_PASSWORD;
-  const from = process.env.FROM_EMAIL || gmailUser;
+
+  // Always use the Gmail address as the technical FROM so Gmail's DKIM
+  // signature aligns with the From domain. A mismatched domain (e.g. a custom
+  // domain sent through Gmail SMTP) fails DMARC alignment and goes to spam.
+  const from = `"Alex from CoursePilot" <${gmailUser}>`;
 
   // SMTP_FORCE_TO overrides the recipient for testing purposes.
   const effectiveTo = process.env.SMTP_FORCE_TO || to;
@@ -443,14 +467,39 @@ async function sendOutreachEmail(to: string, subject: string, html: string): Pro
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: { user: gmailUser, pass: gmailPass },
+    // Announce a proper FQDN during the SMTP EHLO handshake instead of the
+    // default Vercel serverless hostname, which looks suspicious to receivers.
+    name: "coursepilot.app",
   });
+
+  // Build a stable Message-ID whose domain matches the sending address.
+  // Nodemailer's default is <uuid@Nodemailer> — the literal string "Nodemailer"
+  // as the domain, which receiving servers treat as a spoofing indicator.
+  const messageId = `<${crypto.randomUUID()}@gmail.com>`;
+  const plainText = htmlToPlainText(html);
 
   try {
     const info = await transporter.sendMail({
-      from: `"Alex from CoursePilot" <${from}>`,
+      from,
       to: effectiveTo,
       subject,
+      messageId,
+      // Plain-text alternative: the single highest-impact deliverability fix.
+      // Without it the message is HTML-only, which Google Workspace inbound
+      // filters treat as a strong spam signal for SMTP-originated mail.
+      // When forwarding manually, Gmail auto-generates this part — that is why
+      // forwarding lands in the inbox while the direct send does not.
+      text: plainText,
       html,
+      // Remove the default "X-Mailer: nodemailer" header. Google Workspace
+      // inbound filters flag it as an automation / bulk-sending marker.
+      xMailer: false,
+      headers: {
+        // Standard unsubscribe header — absence is itself a spam signal for
+        // outreach mail sent to business domains.
+        "List-Unsubscribe": `<mailto:${gmailUser}?subject=unsubscribe>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
     });
     console.log("[step 6/7 | send-email] Sent — message ID:", info.messageId, "| to:", effectiveTo);
     return { sent: true, mode: "real", message: "Email sent via Gmail SMTP.", providerId: info.messageId };
