@@ -62,8 +62,11 @@ export function isLinkedInProfileUrl(value: string): boolean {
   try {
     const normalized = normalizeLinkedInUrl(value);
     const url = new URL(normalized);
-    const host = url.hostname.toLowerCase().replace(/^www\./, "");
-    return (url.protocol === "https:" || url.protocol === "http:") && host === "linkedin.com" && url.pathname.startsWith("/in/");
+    const host = url.hostname.toLowerCase();
+    // Accept any LinkedIn subdomain: linkedin.com, www.linkedin.com,
+    // uk.linkedin.com, au.linkedin.com, ca.linkedin.com, etc.
+    const isLinkedIn = host === "linkedin.com" || host.endsWith(".linkedin.com");
+    return (url.protocol === "https:" || url.protocol === "http:") && isLinkedIn && url.pathname.startsWith("/in/");
   } catch {
     return false;
   }

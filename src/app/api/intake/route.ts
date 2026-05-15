@@ -66,6 +66,7 @@ export async function POST(request: Request) {
 
   const validation = validateFormSubmission(body);
   if (!validation.ok || !validation.data) {
+    console.error("[intake] Validation failed — errors:", JSON.stringify(validation.errors), "| body keys:", Object.keys(typeof body === "object" && body !== null ? body : {}));
     return NextResponse.json({ error: "Validation failed.", errors: validation.errors }, { status: 400 });
   }
 
