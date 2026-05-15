@@ -86,6 +86,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <div>
                 <h5>Get started</h5>
                 <Link href="/intake">Submit a lead</Link>
+                <Link href="/leads">Lead database</Link>
                 <Link href="/result">View results</Link>
                 <Link href="/evals">Eval rubric</Link>
               </div>

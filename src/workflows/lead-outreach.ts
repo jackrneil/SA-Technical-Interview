@@ -5,6 +5,7 @@ import nodemailer from "nodemailer";
 import type { ApifyLinkedInResult, LeadWebhookPayload, OutreachDraft, OutreachLogRecord, OutreachSendResult } from "@/workflows/types";
 import type { LeadInput } from "@/lib/types";
 import { evaluateAIResult } from "@/lib/evals/runEvaluation";
+import { insertLead, isDbConfigured } from "@/lib/db";
 
 const DEFAULT_APIFY_ACTOR = "2SyF0bVxmgGr8IVCZ";
 
@@ -632,18 +633,65 @@ Generate:
   }
 }
 
-// ─── Step 7: Log the outreach record ──────────────────────────────────────────
+// ─── Step 7: Persist to database + log the outreach record ────────────────────
 
-async function logOutreachRecord(record: Omit<OutreachLogRecord, "id" | "loggedAt">): Promise<OutreachLogRecord> {
+interface FullOutreachRecord extends Omit<OutreachLogRecord, "id" | "loggedAt"> {
+  evalScore: number;
+  evalPass: boolean;
+  hallucinationFlags: string[];
+  fitSummary: string;
+  possibilities: Array<{ title: string; body: string }>;
+  imageUrl: string | null;
+}
+
+async function logOutreachRecord(record: FullOutreachRecord): Promise<OutreachLogRecord> {
   "use step";
 
-  const full: OutreachLogRecord = {
-    id: crypto.randomUUID(),
-    loggedAt: new Date().toISOString(),
-    ...record,
-  };
+  const id = crypto.randomUUID();
+  const loggedAt = new Date().toISOString();
 
+  const full: OutreachLogRecord = { id, loggedAt, ...record };
   console.log("[step 7/7 | outreach-log]", JSON.stringify(full));
+
+  // ─── Persist to Neon Postgres (Vercel Postgres) ───────────────────────────
+  // Gracefully skipped when POSTGRES_URL is not set (local dev without DB).
+  // In production, every lead is written here so the /leads dashboard has a
+  // persistent record of every submission and its full workflow outcome.
+  if (isDbConfigured()) {
+    try {
+      const dbId = await insertLead({
+        firstName: record.lead.firstName,
+        lastName: record.lead.lastName,
+        email: record.lead.businessEmail,
+        linkedinUrl: record.lead.linkedinUrl,
+        companyName: record.enrichment.companyName || record.lead.companyName,
+        jobTitle: record.enrichment.jobTitle || record.lead.title,
+        industry: record.enrichment.companyIndustry || record.lead.industry,
+        companySize: record.enrichment.companySize || record.lead.employeeCount,
+        location: record.enrichment.addressWithCountry || [record.lead.city, record.lead.state].filter(Boolean).join(", ") || undefined,
+        purpose: record.lead.purpose,
+        details: record.lead.details,
+        emailSubject: record.draft.subject,
+        emailSent: record.send.sent,
+        emailMode: record.send.mode,
+        imageUrl: record.imageUrl,
+        enrichmentSource: record.enrichment.source,
+        evalScore: record.evalScore,
+        evalPass: record.evalPass,
+        hallucinationFlags: record.hallucinationFlags,
+        fitSummary: record.fitSummary,
+        possibilities: record.possibilities,
+        workflowRunId: id,
+      });
+      console.log("[step 7/7 | db-insert] Lead saved — db id:", dbId);
+    } catch (err) {
+      // Never block the workflow on a DB write failure — log and continue.
+      console.error("[step 7/7 | db-insert] Failed to persist lead:", err instanceof Error ? err.message : String(err));
+    }
+  } else {
+    console.log("[step 7/7 | db-insert] Skipped — POSTGRES_URL not configured.");
+  }
+
   return full;
 }
 
@@ -711,8 +759,19 @@ export async function runLeadOutreachWorkflow(lead: LeadWebhookPayload) {
     "| hallucination flags:", evaluation.hallucinationFlags.length,
   );
 
-  // Step 7: Persist the full outreach record
-  const record = await logOutreachRecord({ lead, enrichment, draft: finalEmail, send });
+  // Step 7: Persist to Postgres + log the full outreach record
+  const record = await logOutreachRecord({
+    lead,
+    enrichment,
+    draft: finalEmail,
+    send,
+    evalScore: evaluation.score,
+    evalPass: evaluation.overallPass,
+    hallucinationFlags: evaluation.hallucinationFlags,
+    fitSummary: fitMetadata.fitSummary,
+    possibilities: fitMetadata.possibilities,
+    imageUrl: personalizedImage,
+  });
 
   console.log("[workflow | lead-outreach] Complete — runId:", record.id, "| sent:", send.sent, "| mode:", send.mode, "| evalScore:", evaluation.score);
 

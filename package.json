@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/nodemailer": "^8.0.0",
     "@vercel/blob": "^2.3.3",
+    "@vercel/postgres": "^0.10.0",
     "ai": "latest",
     "next": "latest",
     "nodemailer": "^8.0.7",
