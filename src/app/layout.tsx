@@ -56,9 +56,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <Link href="#faq">FAQ</Link>
             </nav>
             <div className="header-actions">
-              <Link href="/evals" className="header-login">
-                Login
-              </Link>
               <Link href="/intake" className="btn btn-primary btn-arrow">
                 <span>Get Started</span>
                 <ArrowIcon />
@@ -88,25 +85,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <Link href="/evals">Evaluations</Link>
               </div>
               <div>
-                <h5>Company</h5>
-                <Link href="#">About</Link>
-                <Link href="#">Careers</Link>
-                <Link href="#">Press</Link>
-                <Link href="#">Contact</Link>
-              </div>
-              <div>
-                <h5>Resources</h5>
-                <Link href="#">Docs</Link>
-                <Link href="#">Case studies</Link>
-                <Link href="#faq">FAQ</Link>
-                <Link href="#">Status</Link>
-              </div>
-              <div>
-                <h5>Legal</h5>
-                <Link href="#">Privacy</Link>
-                <Link href="#">Terms</Link>
-                <Link href="#">Security</Link>
-                <Link href="#">DPA</Link>
+                <h5>Get started</h5>
+                <Link href="/intake">Submit a lead</Link>
+                <Link href="/result">View results</Link>
+                <Link href="/evals">Eval rubric</Link>
               </div>
             </div>
           </div>

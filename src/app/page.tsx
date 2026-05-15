@@ -10,14 +10,6 @@ function Arrow() {
   );
 }
 
-function Play() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M8 5v14l11-7L8 5z" />
-    </svg>
-  );
-}
-
 function Check() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -90,14 +82,6 @@ function IconRocket() {
       <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2Z" />
       <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
       <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
-    </svg>
-  );
-}
-
-function IconShield() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z" />
     </svg>
   );
 }
@@ -412,9 +396,6 @@ export default function Home() {
               <span>Get Started</span>
               <Arrow />
             </Link>
-            <button type="button" className="btn btn-outline">
-              <Play /> Watch Demo
-            </button>
           </div>
           <div className="hero-checks">
             <span className="check-item">
@@ -553,9 +534,6 @@ export default function Home() {
             <Link href="/intake" className="btn btn-primary btn-arrow">
               <span>Get Started</span>
               <Arrow />
-            </Link>
-            <Link href="/architecture" className="btn btn-outline btn-outline-light">
-              <IconShield /> See architecture
             </Link>
           </div>
         </div>
