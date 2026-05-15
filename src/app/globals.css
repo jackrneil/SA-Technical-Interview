@@ -1525,6 +1525,55 @@ textarea {
   gap: 0.75rem;
 }
 
+/* ===== Architecture page ===== */
+
+.arch-section-heading {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.arch-section-intro {
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 680px;
+  margin: 0 0 1.25rem;
+}
+
+.arch-card h3 {
+  font-size: 0.97rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.4rem;
+  color: var(--text);
+}
+
+.arch-card p, .arch-card li {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.arch-card ol, .arch-card ul { margin: 0; }
+
+.arch-badge {
+  display: inline-block;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.arch-badge--server  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.arch-badge--client  { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+.arch-badge--security{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.arch-badge--ai      { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+
 /* ===== Responsive ===== */
 
 @media (max-width: 1024px) {
