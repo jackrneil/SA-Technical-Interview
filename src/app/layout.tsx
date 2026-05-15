@@ -52,7 +52,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <nav className="primary-nav" aria-label="Primary">
               <Link href="#features">Platform</Link>
               <Link href="#how-it-works">How it works</Link>
-              <Link href="/architecture">Pricing</Link>
               <Link href="#faq">FAQ</Link>
             </nav>
             <div className="header-actions">
