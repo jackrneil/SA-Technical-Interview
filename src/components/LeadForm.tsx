@@ -17,12 +17,14 @@ export function LeadForm() {
   const router = useRouter();
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError("");
+    setFieldErrors({});
 
     try {
       const response = await fetch("/api/intake", {
@@ -33,7 +35,15 @@ export function LeadForm() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Something went wrong. Please try again.");
+        // Surface field-level validation errors if present
+        if (payload.errors && typeof payload.errors === "object") {
+          setFieldErrors(payload.errors as Record<string, string>);
+        }
+        throw new Error(
+          payload.errors
+            ? Object.values(payload.errors as Record<string, string>).join(" ")
+            : (payload.error ?? "Something went wrong. Please try again."),
+        );
       }
 
       // Keep loading=true so the spinner stays visible while Next.js navigates.
@@ -60,6 +70,7 @@ export function LeadForm() {
           value={form.fullName}
           onChange={(e) => setForm({ ...form, fullName: e.target.value })}
         />
+        {fieldErrors.fullName && <p className="field-error">{fieldErrors.fullName}</p>}
       </div>
 
       <div className="field">
@@ -72,6 +83,7 @@ export function LeadForm() {
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
+        {fieldErrors.email && <p className="field-error">{fieldErrors.email}</p>}
       </div>
 
       <div className="field">
@@ -84,6 +96,7 @@ export function LeadForm() {
           value={form.linkedinUrl}
           onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
         />
+        {fieldErrors.linkedinUrl && <p className="field-error">{fieldErrors.linkedinUrl}</p>}
       </div>
 
       <div className="field">
@@ -100,6 +113,7 @@ export function LeadForm() {
             </option>
           ))}
         </select>
+        {fieldErrors.primaryGoal && <p className="field-error">{fieldErrors.primaryGoal}</p>}
       </div>
 
       <div className="field">
@@ -112,6 +126,7 @@ export function LeadForm() {
           value={form.details}
           onChange={(e) => setForm({ ...form, details: e.target.value })}
         />
+        {fieldErrors.details && <p className="field-error">{fieldErrors.details}</p>}
       </div>
 
       {error ? <p className="error-text">{error}</p> : null}

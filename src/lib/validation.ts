@@ -49,9 +49,19 @@ export function isSafePublicUrl(value: string): boolean {
   return true;
 }
 
+export function normalizeLinkedInUrl(value: string): string {
+  const trimmed = value.trim();
+  // Add https:// if the user pasted without a protocol
+  if (trimmed && !trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+    return "https://" + trimmed;
+  }
+  return trimmed;
+}
+
 export function isLinkedInProfileUrl(value: string): boolean {
   try {
-    const url = new URL(value);
+    const normalized = normalizeLinkedInUrl(value);
+    const url = new URL(normalized);
     const host = url.hostname.toLowerCase().replace(/^www\./, "");
     return (url.protocol === "https:" || url.protocol === "http:") && host === "linkedin.com" && url.pathname.startsWith("/in/");
   } catch {
@@ -66,7 +76,8 @@ export function validateFormSubmission(input: unknown): FormValidationResult {
   const submission = {
     fullName: asString(body.fullName),
     email: asString(body.email),
-    linkedinUrl: asString(body.linkedinUrl),
+    // Normalize: add https:// if the user omitted the protocol
+    linkedinUrl: normalizeLinkedInUrl(asString(body.linkedinUrl)),
     primaryGoal: asString(body.primaryGoal),
     details: asString(body.details),
   };
